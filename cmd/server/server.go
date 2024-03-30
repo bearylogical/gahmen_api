@@ -30,7 +30,7 @@ func (s *APIServer) Run() {
 	handler := handlers.NewHandler(s.store)
 	router := http.NewServeMux()
 
-	stack := middleware.CreateStack(middleware.Logging)
+	stack := middleware.CreateStack(middleware.Logging, middleware.AllowCors)
 
 	// high level route to list all ministries and get a specific ministry by id
 	router.HandleFunc("GET /ministry", makeHttpHandleFunc(handler.ListMinistry))
