@@ -3,10 +3,11 @@ package storage
 import (
 	"fmt"
 
+	"gahmen-api/config"
+	"gahmen-api/types"
+
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"gahmen-api/types"
-	"gahmen-api/config"
 )
 
 type Storage interface {
@@ -70,7 +71,7 @@ func (s *PostgresStore) GetMinistryByID(id int) (*types.Ministry, error) {
 }
 
 func (s *PostgresStore) ListMinistry() ([]*types.Ministry, error) {
-	sqlStmt := "SELECT * FROM ministry"
+	sqlStmt := `SELECT * FROM ministry m where  m."Name" != ''`
 
 	ministries := []*types.Ministry{}
 	err := s.db.Select(&ministries, sqlStmt)
@@ -149,13 +150,15 @@ func (s *PostgresStore) GetSGDILinkByMinistryID(ministryID int) ([]*types.SGDILI
 	sqlStmt := `select
 				o2."Name" as child,
 				o."Name" as parent,
-				o2."URL_LINK" as url
+				o2."URL_LINK" as child_url,
+				o."URL_LINK" as parent_url
 			from
 				organisation o2
-			inner join (
+			left join (
 				select
 					id,
-					"Name"
+					"Name",
+					"URL_LINK"
 				from
 					organisation) o
 			on
