@@ -20,6 +20,7 @@ type Storage interface {
 	GetDocumentByID(int) (*types.Document, error)
 	ListProjectExpenditureByMinistryID(int) ([]*types.ProjectExpenditure, error)
 	GetSGDILinkByMinistryID(int) ([]*types.SGDILINK, error)
+	ListExpenditureByMinistryID(int) ([]*types.MinistryExpenditure, error)
 }
 
 type PostgresStore struct {
@@ -144,6 +145,42 @@ func (s *PostgresStore) ListProjectExpenditureByMinistryID(ministryID int) ([]*t
 	err := s.db.Select(&projects, sqlStmt, ministryID)
 	return projects, err
 
+}
+
+func (s *PostgresStore) ListExpenditureByMinistryID(ministryID int) ([]*types.MinistryExpenditure, error) {
+	sqlStmt := `select
+				sum("ValueAmount") as "ValueAmount",
+				"ExpenditureType" ,
+				"ValueType",
+				"ValueYear",
+				"MinistryID"
+			from
+				(
+				select
+					distinct "ObjectClass",
+					"ObjectCode",
+					"ValueType",
+					"ValueYear",
+					"ValueAmount",
+					"MinistryID",
+					case
+						when cast("ObjectCode" as int) > 5200 then 'OTHER'
+						when cast("ObjectCode" as int) > 5000 then 'DEVELOPMENT'
+						else 'OPERATING'
+					end as "ExpenditureType"
+				from
+					budgetexpenditure b ) a
+			where
+				a."MinistryID" = $1
+			group by
+				a."MinistryID",
+				a."ExpenditureType",
+				a."ValueType",
+				a."ValueYear"
+			`
+	expenditures := []*types.MinistryExpenditure{}
+	err := s.db.Select(&expenditures, sqlStmt, ministryID)
+	return expenditures, err
 }
 
 func (s *PostgresStore) GetSGDILinkByMinistryID(ministryID int) ([]*types.SGDILINK, error) {

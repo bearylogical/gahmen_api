@@ -39,6 +39,14 @@ type ProjectExpenditure struct {
 	BudgetID     int     `json:"budget_id"`
 }
 
+type MinistryExpenditure struct {
+	MinistryID      string  `db:"MinistryID" json:"ministry_id"`
+	ValueType       string  `db:"ValueType" json:"value_type"`
+	ValueAmount     float32 `db:"ValueAmount" json:"value_amount"`
+	ValueYear       int     `db:"ValueYear" json:"value_year"`
+	ExpenditureType string  `db:"ExpenditureType" json:"expenditure_type"`
+}
+
 func NewMinistry(name string) *Ministry {
 	return &Ministry{
 		Name:      name,

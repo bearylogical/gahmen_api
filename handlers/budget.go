@@ -23,3 +23,15 @@ func (h *Handler) ListProjectByMinistryID(w http.ResponseWriter, r *http.Request
 	}
 	return helpers.WriteJSON(w, http.StatusOK, documents)
 }
+
+func (h *Handler) ListMinistryExpenditure(w http.ResponseWriter, r *http.Request) error {
+	ministry_id, err := helpers.GetIDByResponseField(r, "ministry_id")
+	if err != nil {
+		return err
+	}
+	documents, err := h.store.ListExpenditureByMinistryID(ministry_id)
+	if err != nil {
+		return err
+	}
+	return helpers.WriteJSON(w, http.StatusOK, documents)
+}
