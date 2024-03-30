@@ -3,12 +3,13 @@ package main
 import (
 	"log"
 
-	"gahmen-api/config"
-	"gahmen-api/db"
 	"gahmen-api/cmd/server"
+	"gahmen-api/config"
+	storage "gahmen-api/db"
 )
 
 func main() {
+	log.Println("Starting Gahmen API server...")
 	config := config.NewConfig()
 	config.Parse()
 	if err := config.Validate(); err != nil {
