@@ -4,10 +4,6 @@ import (
 	"time"
 )
 
-type CreateMinistryRequest struct {
-	Name string `json:"name"`
-}
-
 type Ministry struct {
 	ID        int       `json:"id"`
 	Name      string    `db:"Name" json:"name"`
@@ -25,9 +21,10 @@ type Document struct {
 }
 
 type SGDILINK struct {
-	ChildName  string `db:"child" json:"child_name"`
-	ParentName string `db:"parent" json:"parent_name"`
-	URL        string `db:"url" json:"url"`
+	ChildName  string  `db:"child" json:"child_name"`
+	ParentName *string `db:"parent" json:"parent_name"`
+	ChildURL   string  `db:"child_url" json:"child_url"`
+	ParentURL  *string `db:"parent_url" json:"parent_url"`
 }
 
 type ProjectExpenditure struct {
