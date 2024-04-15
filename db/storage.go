@@ -15,12 +15,15 @@ type Storage interface {
 	DeleteMinistry(int) error
 	UpdateMinistry(*types.Ministry) error
 	GetMinistryByID(int) (*types.Ministry, error)
-	ListMinistry() ([]*types.Ministry, error)
+	ListMinistries(bool) ([]*types.Ministry, error)
 	ListDocumentByMinistryID(int) ([]*types.Document, error)
 	GetDocumentByID(int) (*types.Document, error)
 	ListProjectExpenditureByMinistryID(int) ([]*types.ProjectExpenditure, error)
 	GetSGDILinkByMinistryID(int) ([]*types.SGDILINK, error)
-	ListExpenditureByMinistryID(int) ([]*types.MinistryExpenditure, error)
+	ListExpenditureByMinistryID(int) ([]*types.MinistryExpenditureType, error)
+	ListExpenditure(string, int) ([]*types.MinistryExpenditureType, error)
+	GetBudgetOpts() ([]*types.MinistryExpenditureOptions, error)
+	ListTopNPersonnelByMinistryID(int, int, int) ([]*types.MinistryPersonnel, error)
 }
 
 type PostgresStore struct {
@@ -64,19 +67,57 @@ func (s *PostgresStore) UpdateMinistry(m *types.Ministry) error {
 }
 
 func (s *PostgresStore) GetMinistryByID(id int) (*types.Ministry, error) {
-	sqlStmt := "SELECT * FROM ministry WHERE id = $1"
+	sqlStmt := `SELECT * FROM ministry WHERE id = $1`
 	ministry := types.Ministry{}
-	err := s.db.Select(&ministry, sqlStmt)
+	err := s.db.Get(&ministry, sqlStmt, id)
 
 	return &ministry, err
 }
 
-func (s *PostgresStore) ListMinistry() ([]*types.Ministry, error) {
-	sqlStmt := `SELECT * FROM ministry m where  m."Name" != ''`
+func (s *PostgresStore) ListMinistries(isMinistry bool) ([]*types.Ministry, error) {
 
 	ministries := []*types.Ministry{}
-	err := s.db.Select(&ministries, sqlStmt)
-	return ministries, err // Return the slice of ministries directly
+	if isMinistry {
+		sqlStmt := `
+		select
+				distinct("MinistryID") as id,
+			m."Name" ,
+			m."CreatedAt" 
+		from
+				organisation o
+		left join ministry m on
+				o."MinistryID" = m.id
+		order by
+			id asc`
+		err := s.db.Select(&ministries, sqlStmt)
+		return ministries, err // Return the slice of ministries directly
+	} else {
+		sqlStmt := `select
+					m.id as id,
+					m."Name",
+					m."CreatedAt"
+				from
+					(
+					select
+						"MinistryID"
+					from
+						budgetdocuments c
+					where
+						c."Year" = (
+						select
+							"Year"
+						from
+							budgetdocuments b
+						order by
+							"Year" desc
+						limit 1)) d
+				inner join ministry m on
+					d."MinistryID" = m.ID
+				where
+					m."Name" != ''`
+		err := s.db.Select(&ministries, sqlStmt)
+		return ministries, err // Return the slice of ministries directly
+	}
 
 }
 
@@ -115,6 +156,7 @@ func (s *PostgresStore) ListProjectExpenditureByMinistryID(ministryID int) ([]*t
 				ValueType,
 				ValueAmount,
 				ValueYear,
+				ParentHeader as Category,
 				"Year" as DocumentYear,
 				b2."MinistryID" as MinistryID,
 				BudgetID,
@@ -147,38 +189,50 @@ func (s *PostgresStore) ListProjectExpenditureByMinistryID(ministryID int) ([]*t
 
 }
 
-func (s *PostgresStore) ListExpenditureByMinistryID(ministryID int) ([]*types.MinistryExpenditure, error) {
+func (s *PostgresStore) ListExpenditureByMinistryID(ministryID int) ([]*types.MinistryExpenditureType, error) {
 	sqlStmt := `select
-				sum("ValueAmount") as "ValueAmount",
-				"ExpenditureType" ,
-				"ValueType",
-				"ValueYear",
-				"MinistryID"
+				"ValueAmount",
+							"ExpenditureType" ,
+							"ValueType",
+							"ValueYear",
+							"Name" as "MinistryName"
 			from
 				(
 				select
-					distinct "ObjectClass",
-					"ObjectCode",
-					"ValueType",
-					"ValueYear",
-					"ValueAmount",
-					"MinistryID",
-					case
-						when cast("ObjectCode" as int) > 5200 then 'OTHER'
-						when cast("ObjectCode" as int) > 5000 then 'DEVELOPMENT'
-						else 'OPERATING'
-					end as "ExpenditureType"
+							sum("ValueAmount") as "ValueAmount",
+							"ExpenditureType" ,
+							"ValueType",
+							"ValueYear",
+							"MinistryID"
 				from
-					budgetexpenditure b ) a
+							(
+					select
+								distinct "ObjectClass",
+								"ObjectCode",
+								"ValueType",
+								"ValueYear",
+								"ValueAmount",
+								"MinistryID",
+								case
+									when cast("ObjectCode" as int) > 5200 then 'OTHER'
+							when cast("ObjectCode" as int) > 5000 then 'DEVELOPMENT'
+							else 'OPERATING'
+						end as "ExpenditureType"
+					from
+								budgetexpenditure b ) a
+				where
+							a."MinistryID" = $1
+				group by
+							a."MinistryID",
+							a."ExpenditureType",
+							a."ValueType",
+							a."ValueYear") c
+			left join ministry m on
+				m.id = c."MinistryID"
 			where
-				a."MinistryID" = $1
-			group by
-				a."MinistryID",
-				a."ExpenditureType",
-				a."ValueType",
-				a."ValueYear"
+				m."Name" != ''
 			`
-	expenditures := []*types.MinistryExpenditure{}
+	expenditures := []*types.MinistryExpenditureType{}
 	err := s.db.Select(&expenditures, sqlStmt, ministryID)
 	return expenditures, err
 }
@@ -205,4 +259,84 @@ func (s *PostgresStore) GetSGDILinkByMinistryID(ministryID int) ([]*types.SGDILI
 	links := []*types.SGDILINK{}
 	err := s.db.Select(&links, sqlStmt, ministryID)
 	return links, err
+}
+
+func (s *PostgresStore) ListExpenditure(valueType string, valueYear int) ([]*types.MinistryExpenditureType, error) {
+	sqlStmt := `select
+					concat(c."MinistryName",
+					'/',
+					c."ExpenditureType",
+					'/',
+					c."ObjectClass" ) as "ObjectPath",
+					"ObjectClass",
+						"ObjectCode",
+						"ValueType",
+						"ValueYear",
+						"ValueAmount",
+						"MinistryName",
+						"ExpenditureType"
+				from
+					(
+					select
+						distinct "ObjectClass",
+						"ObjectCode",
+						"ValueType",
+						"ValueYear",
+						"ValueAmount",
+						"MinistryID",
+						"Name" as "MinistryName",
+						case
+							when cast("ObjectCode" as int) > 5200 then 'Other Expenditure'
+							when cast("ObjectCode" as int) > 5000 then 'Development Expenditure'
+							else 'Operating Expenditure'
+						end as "ExpenditureType"
+					from
+						budgetexpenditure b
+					left join ministry m on
+						m.id = b."MinistryID"
+					where
+						"ValueYear" = $1 and
+						"ValueType" = $2 and "Name" != '' ) c
+			`
+	expenditures := []*types.MinistryExpenditureType{}
+	err := s.db.Select(&expenditures, sqlStmt, valueYear, valueType)
+	return expenditures, err
+}
+
+func (s *PostgresStore) GetBudgetOpts() ([]*types.MinistryExpenditureOptions, error) {
+	sqlStmt := `select
+					distinct("ValueType"),
+					"ValueYear"
+				from
+					budgetexpenditure b`
+	opts := []*types.MinistryExpenditureOptions{}
+	err := s.db.Select(&opts, sqlStmt)
+	return opts, err
+}
+
+func (s *PostgresStore) ListTopNPersonnelByMinistryID(ministryID int, n int, startYear int) ([]*types.MinistryPersonnel, error) {
+	sqlStmt := `select
+					category,
+					"ParentHeader" as "ParentCategory" ,
+					"ValueAmount",
+					"ValueYear",
+					"ValueType"
+				from
+					budgetpersonnel b
+				where
+					"MinistryID" = $1`
+	if startYear > 0 {
+		sqlStmt += fmt.Sprintf(" and \"ValueYear\" >= %d ", startYear)
+	}
+	if n > 0 {
+		sqlStmt += fmt.Sprintf(" limit %d", n)
+	}
+
+	sqlStmt += `order by
+	"ValueAmount" desc`
+
+	println(sqlStmt)
+	opts := []*types.MinistryPersonnel{}
+	err := s.db.Select(&opts, sqlStmt, ministryID)
+	return opts, err
 }

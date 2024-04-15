@@ -33,18 +33,42 @@ type ProjectExpenditure struct {
 	ValueType    string  `json:"value_type"`
 	ValueAmount  float32 `json:"value_amount"`
 	ValueYear    int     `json:"value_year"`
+	Category     string  `json:"parent_header"`
 	DocumentYear int     `json:"document_year"`
 	MinistryID   int     `json:"ministry_id"`
 	DocumentID   int     `json:"document_id"`
 	BudgetID     int     `json:"budget_id"`
 }
 
-type MinistryExpenditure struct {
-	MinistryID      string  `db:"MinistryID" json:"ministry_id"`
+type MinistryExpenditureType struct {
+	MinistryName    string  `db:"MinistryName" json:"ministry_id"`
+	ObjectPath      string  `db:"ObjectPath" json:"object_path"`
+	ObjectClass     string  `db:"ObjectClass" json:"object_class"`
+	ObjectCode      string  `db:"ObjectCode" json:"object_code"`
+	ExpenditureType string  `db:"ExpenditureType" json:"expenditure_type"`
 	ValueType       string  `db:"ValueType" json:"value_type"`
 	ValueAmount     float32 `db:"ValueAmount" json:"value_amount"`
 	ValueYear       int     `db:"ValueYear" json:"value_year"`
-	ExpenditureType string  `db:"ExpenditureType" json:"expenditure_type"`
+}
+
+type MinistryExpenditure struct {
+	MinistryName string  `db:"MinistryName" json:"ministry_id"`
+	ValueType    string  `db:"ValueType" json:"value_type"`
+	ValueAmount  float32 `db:"ValueAmount" json:"value_amount"`
+	ValueYear    int     `db:"ValueYear" json:"value_year"`
+}
+
+type MinistryExpenditureOptions struct {
+	ValueType string `db:"ValueType" json:"value_type"`
+	ValueYear int    `db:"ValueYear" json:"value_year"`
+}
+
+type MinistryPersonnel struct {
+	Category       string  `db:"category" json:"personnel_type"`
+	ParentCategory string  `db:"ParentCategory" json:"category"`
+	ValueAmount    *int    `db:"ValueAmount" json:"value_amount"`
+	ValueYear      *int    `db:"ValueYear" json:"value_year"`
+	ValueType      *string `db:"ValueType" json:"value_type"`
 }
 
 func NewMinistry(name string) *Ministry {

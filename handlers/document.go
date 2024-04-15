@@ -7,7 +7,7 @@ import (
 )
 
 func (h *Handler) ListDocumentByMinistryID(w http.ResponseWriter, r *http.Request) error {
-	ministry_id, err := helpers.GetIDByResponseField(r, "ministry_id")
+	ministry_id, err := helpers.GetIntByResponseField(r, "ministry_id")
 	if err != nil {
 		return err
 	}
@@ -19,7 +19,7 @@ func (h *Handler) ListDocumentByMinistryID(w http.ResponseWriter, r *http.Reques
 }
 
 func (h *Handler) GetDocumentByID(w http.ResponseWriter, r *http.Request) error {
-	id, err := helpers.GetIDByResponseField(r, "document_id")
+	id, err := helpers.GetIntByResponseField(r, "document_id")
 	if err != nil {
 		return err
 	}

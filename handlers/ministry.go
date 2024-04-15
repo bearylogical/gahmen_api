@@ -7,8 +7,12 @@ import (
 	"gahmen-api/helpers"
 )
 
-func (h *Handler) ListMinistry(w http.ResponseWriter, r *http.Request) error {
-	ministries, err := h.store.ListMinistry()
+func (h *Handler) ListMinistries(w http.ResponseWriter, r *http.Request) error {
+	ministryFlag, err := helpers.GetBoolByResponseQuery(r, "isMinistry")
+	if err != nil {
+		return err
+	}
+	ministries, err := h.store.ListMinistries(ministryFlag)
 	if err != nil {
 		return err
 	}
@@ -16,7 +20,7 @@ func (h *Handler) ListMinistry(w http.ResponseWriter, r *http.Request) error {
 }
 
 func (h *Handler) GetMinistryByID(w http.ResponseWriter, r *http.Request) error {
-	id, err := helpers.GetIDByResponseField(r, "ministry_id")
+	id, err := helpers.GetIntByResponseField(r, "ministry_id")
 	if err != nil {
 		return err
 	}
@@ -33,7 +37,7 @@ func (h *Handler) UpdateMinistryByID(w http.ResponseWriter, r *http.Request) err
 }
 
 func (h *Handler) DeleteMinistryByID(w http.ResponseWriter, r *http.Request) error {
-	id, err := helpers.GetIDByResponseField(r, "ministry_id")
+	id, err := helpers.GetIntByResponseField(r, "ministry_id")
 	if err != nil {
 		return err
 	}
