@@ -5,7 +5,7 @@ run:
 	@go run ./cmd/app/main.go
 
 build-docker:
-	RUN CGO_ENABLED=0 GOOS=linux go build -o /gahmen-api ./cmd/app/main.go
+	CGO_ENABLED=0 GOOS=linux go build -o /gahmen-api ./cmd/app/main.go
 
 test:
 	@go test -v ./...

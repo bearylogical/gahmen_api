@@ -32,7 +32,7 @@ type PostgresStore struct {
 
 // create a postgres store from a config struc
 func NewPostgresStore(c *config.Config) (*PostgresStore, error) {
-	connStr := "user=" + c.PostgresUser + " dbname=" + c.PostgresDBName + " password=" + c.PostgresPasword + " sslmode=disable"
+	connStr := "host=" + c.PostgresHost + " user=" + c.PostgresUser + " dbname=" + c.PostgresDBName + " password=" + c.PostgresPasword + " sslmode=disable"
 	db, err := sqlx.Connect("postgres", connStr)
 	if err != nil {
 		return nil, err

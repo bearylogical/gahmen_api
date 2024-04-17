@@ -33,15 +33,15 @@ func (s *APIServer) Run() {
 	stack := middleware.CreateStack(middleware.Logging, middleware.AllowCors)
 
 	// high level route to list all ministries and get a specific ministry by id
-	router.HandleFunc("GET /ministries", makeHttpHandleFunc(handler.ListMinistries))
-	router.HandleFunc("GET /ministries/{ministry_id}", makeHttpHandleFunc(handler.GetMinistryByID))
-	router.HandleFunc("GET /budget/documents/{ministry_id}", makeHttpHandleFunc(handler.ListDocumentByMinistryID))
-	router.HandleFunc("GET /budget", makeHttpHandleFunc(handler.ListExpenditure))
-	router.HandleFunc("GET /budget/opts", makeHttpHandleFunc(handler.GetBudgetOpts))
-	router.HandleFunc("GET /budget/{ministry_id}", makeHttpHandleFunc(handler.ListExpenditureByMinistry))
-	router.HandleFunc("GET /budget/projects/{ministry_id}", makeHttpHandleFunc(handler.ListProjectByMinistryID))
-	router.HandleFunc("GET /sgdi/links/{ministry_id}", makeHttpHandleFunc(handler.ListSGDILinksByMinistryID))
-	router.HandleFunc("GET /personnel", makeHttpHandleFunc(handler.ListTopNPersonnelByMinistryID))
+	router.HandleFunc("GET /api/v1/ministries", makeHttpHandleFunc(handler.ListMinistries))
+	router.HandleFunc("GET /api/v1/ministries/{ministry_id}", makeHttpHandleFunc(handler.GetMinistryByID))
+	router.HandleFunc("GET /api/v1/budget/documents/{ministry_id}", makeHttpHandleFunc(handler.ListDocumentByMinistryID))
+	router.HandleFunc("GET /api/v1/budget", makeHttpHandleFunc(handler.ListExpenditure))
+	router.HandleFunc("GET /api/v1/budget/opts", makeHttpHandleFunc(handler.GetBudgetOpts))
+	router.HandleFunc("GET /api/v1/budget/{ministry_id}", makeHttpHandleFunc(handler.ListExpenditureByMinistry))
+	router.HandleFunc("GET /api/v1/budget/projects/{ministry_id}", makeHttpHandleFunc(handler.ListProjectByMinistryID))
+	router.HandleFunc("GET /api/v1/sgdi/links/{ministry_id}", makeHttpHandleFunc(handler.ListSGDILinksByMinistryID))
+	router.HandleFunc("GET /api/v1/personnel", makeHttpHandleFunc(handler.ListTopNPersonnelByMinistryID))
 
 	log.Print("JSON API server running on port", s.listenAddr)
 	server := http.Server{
