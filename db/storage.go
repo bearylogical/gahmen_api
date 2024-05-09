@@ -19,6 +19,9 @@ type Storage interface {
 	ListDocumentByMinistryID(int) ([]*types.Document, error)
 	GetDocumentByID(int) (*types.Document, error)
 	ListProjectExpenditureByMinistryID(int) ([]*types.ProjectExpenditure, error)
+	GetProjectExpenditureByID(int) ([]*types.ProjectExpenditure, error)
+	GetProjectExpenditureByQuery(string) ([]*types.ProjectExpenditure, error)
+	ListProjectsByMinistryID(int) ([]*types.MinistryProject, error)
 	GetSGDILinkByMinistryID(int) ([]*types.SGDILINK, error)
 	ListExpenditureByMinistryID(int) ([]*types.MinistryExpenditureType, error)
 	ListExpenditure(string, int) ([]*types.MinistryExpenditureType, error)
@@ -149,44 +152,225 @@ func (s *PostgresStore) GetDocumentByID(id int) (*types.Document, error) {
 	return &document, err
 }
 
-func (s *PostgresStore) ListProjectExpenditureByMinistryID(ministryID int) ([]*types.ProjectExpenditure, error) {
+func (s *PostgresStore) GetProjectExpenditureByQuery(query string) ([]*types.ProjectExpenditure, error) {
 	sqlStmt := `select
-				ProjectTitle,
-				Ministry,
-				ValueType,
-				ValueAmount,
-				ValueYear,
-				ParentHeader as Category,
-				"Year" as DocumentYear,
-				b2."MinistryID" as MinistryID,
-				BudgetID,
-				DocumentID
+				g."ProjectID",
+				g."ProjectTitle",
+				g."ValueType",
+				g."ValueAmount",
+				g."ValueYear",
+				g."DocumentID",
+				g."MinistryID",
+				g."Ministry",
+				g."Category",
+				g."ExpenditureID",
+				b5."Year" as "DocumentYear"
 			from
 				(
 				select
-					b."ProjectTitle" as ProjectTitle ,
-					m."Name" as Ministry,
-					b."ValueType" as ValueType,
-					b."ValueAmount" as ValueAmount ,
-					b."ValueYear" as ValueYear,
-					b."DocumentID" as DocumentID,
-					b.id as BudgetID,
-					b."ParentHeader" as ParentHeader
+					b4."ProjectID",
+					b4."ProjectTitle",
+					b4."ValueType",
+					b4."ValueAmount",
+					b4."ValueYear",
+					b4."DocumentID",
+					b4."MinistryID",
+					b4."Ministry",
+					b4."ExpenditureID",
+					d."Category"
 				from
-					budgetdevelopmentprojectsexpenditure b
-				inner join ministry m on
-					b."MinistryID" = m.id
+					(
+					select
+						*,
+						m."Name" as "Ministry"
+					from
+						(
+						select
+							b.id as "ProjectID",
+							b."ProjectTitle",
+							b2."ValueType" as "ValueType",
+								b2."ValueAmount" as "ValueAmount" ,
+								b2."ValueYear" as "ValueYear",
+								b2."DocumentID" as "DocumentID",
+								b."MinistryID" as "MinistryID",
+								b2.id as "ExpenditureID"
+						from
+							budgetprojects b
+						inner join budgetdevelopmentprojectsexpenditure b2 on
+							b.id = b2."ProjectID"
+							and b2."ValueType" not in ('', 'OF')
+						where
+							b.search_vector @@ to_tsquery('english',
+							$1)
+			) b3
+					inner join ministry m on
+						m.id = b3."MinistryID") b4
+				inner join (
+					select
+						distinct a."ProjectID",
+						c."ParentHeader" as "Category"
+					from
+						(
+						select
+							max("ValueYear") as "ValueYear",
+							"ProjectID"
+						from
+							budgetdevelopmentprojectsexpenditure u
+						group by
+							"ProjectID") a
+					inner join budgetdevelopmentprojectsexpenditure c on
+						a."ProjectID" = c."ProjectID"
+						and a."ValueYear" = c."ValueYear"
+			) d on
+					d."ProjectID" = b4."ProjectID") g
+			inner join budgetdocuments b5 on
+				b5.id = g."DocumentID"`
+
+	projects := []*types.ProjectExpenditure{}
+	err := s.db.Select(&projects, sqlStmt, query)
+	return projects, err
+}
+
+func (s *PostgresStore) ListProjectExpenditureByMinistryID(ministryID int) ([]*types.ProjectExpenditure, error) {
+	sqlStmt := `select g."ProjectID" as "ProjectID",
+			g."ProjectTitle" as "ProjectTitle",
+			g."ValueType" as "ValueType",
+			g."ValueAmount" as "ValueAmount",
+			g."ValueYear" as "ValueYear",
+			g."DocumentID" as "DocumentID",
+			g."MinistryID" as "MinistryID",
+			g."Ministry" as "Ministry",
+			g."Category" as "Category",
+			g."ExpenditureID" as "ExpenditureID",
+			b5."Year" as "DocumentYear" from (
+		select
+			b4."ProjectID",
+			b4."ProjectTitle",
+			b4."ValueType",
+			b4."ValueAmount",
+			b4."ValueYear",
+			b4."DocumentID",
+			b4."MinistryID",
+			b4."Ministry",
+			b4."ExpenditureID",
+			d."Category"
+		from
+			(
+			select
+				*,
+				m."Name" as "Ministry"
+			from
+				(
+				select
+					b.id as "ProjectID",
+					b."ProjectTitle",
+					b2."ValueType" as "ValueType",
+							b2."ValueAmount" as "ValueAmount" ,
+							b2."ValueYear" as "ValueYear",
+							b2."DocumentID" as "DocumentID",
+							b."MinistryID" as "MinistryID",
+							b2.id as "ExpenditureID"
+				from
+					budgetprojects b
+				inner join budgetdevelopmentprojectsexpenditure b2 on
+					b.id = b2."ProjectID"
+					and b2."ValueType" not in ('', 'OF')
 				where
-					b."MinistryID" = $1
-					and "ValueType" not in ('', 'OF')
-			) s
-			inner join budgetdocuments b2 on
-				s.DocumentID = b2.id`
+					b."MinistryID" = $1) b3
+			inner join ministry m on
+				m.id = b3."MinistryID") b4
+		inner join (
+			select
+				distinct a."ProjectID",
+				c."ParentHeader" as "Category"
+			from
+				(
+				select
+					max("ValueYear") as "ValueYear",
+					"ProjectID"
+				from
+					budgetdevelopmentprojectsexpenditure u
+				group by
+					"ProjectID") a
+			inner join budgetdevelopmentprojectsexpenditure c on
+				a."ProjectID" = c."ProjectID"
+				and a."ValueYear" = c."ValueYear"
+		) d on d."ProjectID" = b4."ProjectID") g inner join budgetdocuments b5 on b5.id  = g."DocumentID"`
 
 	projects := []*types.ProjectExpenditure{}
 	err := s.db.Select(&projects, sqlStmt, ministryID)
 	return projects, err
 
+}
+
+func (s *PostgresStore) GetProjectExpenditureByID(projectID int) ([]*types.ProjectExpenditure, error) {
+	sqlStmt := `select g."ProjectID",
+				g."ProjectTitle",
+				g."ValueType",
+				g."ValueAmount",
+				g."ValueYear",
+				g."DocumentID",
+				g."MinistryID",
+				g."Ministry",
+				g."Category",
+				g."ExpenditureID",
+				b5."Year" as "DocumentYear" from (
+			select
+				b4."ProjectID",
+				b4."ProjectTitle",
+				b4."ValueType",
+				b4."ValueAmount",
+				b4."ValueYear",
+				b4."DocumentID",
+				b4."MinistryID",
+				b4."Ministry",
+				b4."ExpenditureID",
+				d."Category"
+			from
+				(
+				select
+					*,
+					m."Name" as "Ministry"
+				from
+					(
+					select
+						b.id as "ProjectID",
+						b."ProjectTitle",
+						b2."ValueType" as "ValueType",
+								b2."ValueAmount" as "ValueAmount" ,
+								b2."ValueYear" as "ValueYear",
+								b2."DocumentID" as "DocumentID",
+								b."MinistryID" as "MinistryID",
+								b2.id as "ExpenditureID"
+					from
+						budgetprojects b
+					inner join budgetdevelopmentprojectsexpenditure b2 on
+						b.id = b2."ProjectID"
+						and b2."ValueType" not in ('', 'OF')
+					where
+						b.id = $1) b3
+				inner join ministry m on
+					m.id = b3."MinistryID") b4
+			inner join (
+				select
+					distinct a."ProjectID",
+					c."ParentHeader" as "Category"
+				from
+					(
+					select
+						max("ValueYear") as "ValueYear",
+						"ProjectID"
+					from
+						budgetdevelopmentprojectsexpenditure u
+					group by
+						"ProjectID") a
+				inner join budgetdevelopmentprojectsexpenditure c on
+					a."ProjectID" = c."ProjectID"
+					and a."ValueYear" = c."ValueYear"
+			) d on d."ProjectID" = b4."ProjectID") g inner join budgetdocuments b5 on b5.id  = g."DocumentID"`
+	projects := []*types.ProjectExpenditure{}
+	err := s.db.Select(&projects, sqlStmt, projectID)
+	return projects, err
 }
 
 func (s *PostgresStore) ListExpenditureByMinistryID(ministryID int) ([]*types.MinistryExpenditureType, error) {
@@ -259,6 +443,22 @@ func (s *PostgresStore) GetSGDILinkByMinistryID(ministryID int) ([]*types.SGDILI
 	links := []*types.SGDILINK{}
 	err := s.db.Select(&links, sqlStmt, ministryID)
 	return links, err
+}
+
+func (s *PostgresStore) ListProjectsByMinistryID(ministryID int) ([]*types.MinistryProject, error) {
+	sqlStmt := `select
+					id as "ProjectID",
+				"ProjectTitle" ,
+				"MinistryID"
+				from
+				budgetprojects b
+				where
+				"MinistryID" = $1
+	`
+
+	projects := []*types.MinistryProject{}
+	err := s.db.Select(&projects, sqlStmt, ministryID)
+	return projects, err
 }
 
 func (s *PostgresStore) ListExpenditure(valueType string, valueYear int) ([]*types.MinistryExpenditureType, error) {
@@ -335,7 +535,6 @@ func (s *PostgresStore) ListTopNPersonnelByMinistryID(ministryID int, n int, sta
 	sqlStmt += `order by
 	"ValueAmount" desc`
 
-	println(sqlStmt)
 	opts := []*types.MinistryPersonnel{}
 	err := s.db.Select(&opts, sqlStmt, ministryID)
 	return opts, err

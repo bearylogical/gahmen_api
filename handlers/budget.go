@@ -3,6 +3,7 @@ package handlers
 import (
 	"gahmen-api/helpers"
 	"net/http"
+	"strings"
 )
 
 //	func (s *APIServer) handleBudgetProjects(w http.ResponseWriter, r *http.Request) error {
@@ -12,16 +13,56 @@ import (
 //		}
 //		return fmt.Errorf("method not allowed %s", r.Method)
 //	}
+
 func (h *Handler) ListProjectByMinistryID(w http.ResponseWriter, r *http.Request) error {
 	ministry_id, err := helpers.GetIntByResponseField(r, "ministry_id")
 	if err != nil {
 		return err
 	}
-	documents, err := h.store.ListProjectExpenditureByMinistryID(ministry_id)
+	projects, err := h.store.ListProjectsByMinistryID(ministry_id)
+	if err != nil {
+		return err
+	}
+	return helpers.WriteJSON(w, http.StatusOK, projects)
+}
+
+func (h *Handler) GetProjectExpenditureByID(w http.ResponseWriter, r *http.Request) error {
+	project_id, err := helpers.GetIntByResponseField(r, "project_id")
+	if err != nil {
+		return err
+	}
+	documents, err := h.store.GetProjectExpenditureByID(project_id)
 	if err != nil {
 		return err
 	}
 	return helpers.WriteJSON(w, http.StatusOK, documents)
+}
+
+func (h *Handler) GetProjectExpenditureByQuery(w http.ResponseWriter, r *http.Request) error {
+	query, err := helpers.GetStringByResponseQuery(r, "query")
+	if err != nil {
+		return err
+	}
+	// replace all spaces with ' & ' to allow for multiple search terms
+	query = strings.Replace(query, " ", " & ", -1)
+	println(query)
+	documents, err := h.store.GetProjectExpenditureByQuery(query)
+	if err != nil {
+		return err
+	}
+	return helpers.WriteJSON(w, http.StatusOK, documents)
+}
+
+func (h *Handler) ListProjectExpenditureByMinistryID(w http.ResponseWriter, r *http.Request) error {
+	ministry_id, err := helpers.GetIntByResponseField(r, "ministry_id")
+	if err != nil {
+		return err
+	}
+	projects, err := h.store.ListProjectExpenditureByMinistryID(ministry_id)
+	if err != nil {
+		return err
+	}
+	return helpers.WriteJSON(w, http.StatusOK, projects)
 }
 
 func (h *Handler) ListExpenditureByMinistry(w http.ResponseWriter, r *http.Request) error {

@@ -35,12 +35,14 @@ func (s *APIServer) Run() {
 	// high level route to list all ministries and get a specific ministry by id
 	router.HandleFunc("GET /api/v1/ministries", makeHttpHandleFunc(handler.ListMinistries))
 	router.HandleFunc("GET /api/v1/ministries/{ministry_id}", makeHttpHandleFunc(handler.GetMinistryByID))
-	router.HandleFunc("GET /api/v1/budget/documents/{ministry_id}", makeHttpHandleFunc(handler.ListDocumentByMinistryID))
+	router.HandleFunc("GET /api/v1/budget/{ministry_id}/documents", makeHttpHandleFunc(handler.ListDocumentByMinistryID))
 	router.HandleFunc("GET /api/v1/budget", makeHttpHandleFunc(handler.ListExpenditure))
+	router.HandleFunc("POST /api/v1/projects", makeHttpHandleFunc(handler.GetProjectExpenditureByQuery))
+	router.HandleFunc("GET /api/v1/projects/{project_id}", makeHttpHandleFunc(handler.GetProjectExpenditureByID))
 	router.HandleFunc("GET /api/v1/budget/opts", makeHttpHandleFunc(handler.GetBudgetOpts))
 	router.HandleFunc("GET /api/v1/budget/{ministry_id}", makeHttpHandleFunc(handler.ListExpenditureByMinistry))
-	router.HandleFunc("GET /api/v1/budget/projects/{ministry_id}", makeHttpHandleFunc(handler.ListProjectByMinistryID))
-	router.HandleFunc("GET /api/v1/sgdi/links/{ministry_id}", makeHttpHandleFunc(handler.ListSGDILinksByMinistryID))
+	router.HandleFunc("GET /api/v1/budget/{ministry_id}/projects", makeHttpHandleFunc(handler.ListProjectExpenditureByMinistryID))
+	router.HandleFunc("GET /api/v1/sgdi/{ministry_id}/links", makeHttpHandleFunc(handler.ListSGDILinksByMinistryID))
 	router.HandleFunc("GET /api/v1/personnel", makeHttpHandleFunc(handler.ListTopNPersonnelByMinistryID))
 
 	log.Print("JSON API server running on port", s.listenAddr)

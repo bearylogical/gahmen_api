@@ -8,3 +8,5 @@ require (
 )
 
 require github.com/jmoiron/sqlx v1.3.5
+
+require github.com/victorspringer/http-cache v0.0.0-20240130140836-2c4f8454e6e2 // indirect

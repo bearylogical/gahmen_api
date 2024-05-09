@@ -28,16 +28,23 @@ type SGDILINK struct {
 }
 
 type ProjectExpenditure struct {
-	ProjectTitle string  `json:"project_title"`
-	Ministry     string  `json:"ministry"`
-	ValueType    string  `json:"value_type"`
-	ValueAmount  float32 `json:"value_amount"`
-	ValueYear    int     `json:"value_year"`
-	Category     string  `json:"parent_header"`
-	DocumentYear int     `json:"document_year"`
-	MinistryID   int     `json:"ministry_id"`
-	DocumentID   int     `json:"document_id"`
-	BudgetID     int     `json:"budget_id"`
+	ProjectID     int     `json:"project_id" db:"ProjectID"`
+	ProjectTitle  string  `json:"project_title" db:"ProjectTitle"`
+	Ministry      string  `json:"ministry" db:"Ministry"`
+	ValueType     string  `json:"value_type" db:"ValueType"`
+	ValueAmount   float32 `json:"value_amount" db:"ValueAmount"`
+	ValueYear     int     `json:"value_year" db:"ValueYear"`
+	Category      string  `json:"parent_header" db:"Category"`
+	DocumentYear  int     `json:"document_year" db:"DocumentYear"`
+	MinistryID    int     `json:"ministry_id" db:"MinistryID"`
+	DocumentID    int     `json:"document_id" db:"DocumentID"`
+	ExpenditureID int     `json:"expenditure_id" db:"ExpenditureID"`
+}
+
+type MinistryProject struct {
+	ProjectTitle string `db:"ProjectTitle" json:"project_title"`
+	MinistryID   int    `db:"MinistryID" json:"ministry_id"`
+	ProjectId    int    `db:"ProjectID" json:"project_id"`
 }
 
 type MinistryExpenditureType struct {
