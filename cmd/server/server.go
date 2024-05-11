@@ -39,6 +39,7 @@ func (s *APIServer) Run() {
 	router.HandleFunc("GET /api/v1/budget", makeHttpHandleFunc(handler.ListExpenditure))
 	router.HandleFunc("POST /api/v1/projects", makeHttpHandleFunc(handler.GetProjectExpenditureByQuery))
 	router.HandleFunc("GET /api/v1/projects/{project_id}", makeHttpHandleFunc(handler.GetProjectExpenditureByID))
+	router.HandleFunc("GET /api/v1/budget/{ministry_id}/programmes", makeHttpHandleFunc(handler.GetProgrammeExpenditureByMinistryID))
 	router.HandleFunc("GET /api/v1/budget/opts", makeHttpHandleFunc(handler.GetBudgetOpts))
 	router.HandleFunc("GET /api/v1/budget/{ministry_id}", makeHttpHandleFunc(handler.ListExpenditureByMinistry))
 	router.HandleFunc("GET /api/v1/budget/{ministry_id}/projects", makeHttpHandleFunc(handler.ListProjectExpenditureByMinistryID))

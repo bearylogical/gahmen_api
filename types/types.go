@@ -41,6 +41,20 @@ type ProjectExpenditure struct {
 	ExpenditureID int     `json:"expenditure_id" db:"ExpenditureID"`
 }
 
+type ProgrammeExpenditure struct {
+	ProgrammeID            int     `json:"programme_id" db:"ProgrammeID"`
+	ProgrammeTitle         string  `json:"programme_title" db:"ProgrammeTitle"`
+	Ministry               string  `json:"ministry" db:"Ministry"`
+	ValueCode              string  `json:"value_code" db:"ValueCode"`
+	ValueAmount            float32 `json:"value_amount" db:"ValueAmount"`
+	ValueYear              int     `json:"value_year" db:"ValueYear"`
+	ValueName              string  `json:"value_name" db:"ValueName"`
+	DocumentYear           int     `json:"document_year" db:"DocumentYear"`
+	MinistryID             int     `json:"ministry_id" db:"MinistryID"`
+	DocumentID             int     `json:"document_id" db:"DocumentID"`
+	ProgrammeExpenditureID int     `json:"expenditure_id" db:"ProgrammeExpenditureID"`
+}
+
 type MinistryProject struct {
 	ProjectTitle string `db:"ProjectTitle" json:"project_title"`
 	MinistryID   int    `db:"MinistryID" json:"ministry_id"`

@@ -23,6 +23,7 @@ type Storage interface {
 	GetProjectExpenditureByQuery(string) ([]*types.ProjectExpenditure, error)
 	ListProjectsByMinistryID(int) ([]*types.MinistryProject, error)
 	GetSGDILinkByMinistryID(int) ([]*types.SGDILINK, error)
+	GetProgrammeExpenditureByMinistryID(int) ([]*types.ProgrammeExpenditure, error)
 	ListExpenditureByMinistryID(int) ([]*types.MinistryExpenditureType, error)
 	ListExpenditure(string, int) ([]*types.MinistryExpenditureType, error)
 	GetBudgetOpts() ([]*types.MinistryExpenditureOptions, error)
@@ -150,6 +151,54 @@ func (s *PostgresStore) GetDocumentByID(id int) (*types.Document, error) {
 	document := types.Document{}
 	err := s.db.Get(&document, sqlStmt, id)
 	return &document, err
+}
+
+func (s *PostgresStore) GetProgrammeExpenditureByMinistryID(ministryID int) ([]*types.ProgrammeExpenditure, error) {
+	sqlStmt := `select
+				a2."MinistryID" as "MinistryID",
+				a2."ProgrammeID" as "ProgrammeID",
+				a2."ProgrammeTitle" as "ProgrammeTitle" ,
+				a2."ValueCode" as "ValueCode",
+				a2."ValueName" as "ValueName",
+				a2."ValueAmount" as "ValueAmount",
+				a2."ValueYear" as "ValueYear",
+				a2."ProgrammeExpenditureID",
+				a2."DocumentID" as "DocumentID",
+				a2."Name" as "Ministry",
+				b3."Year" as "DocumentYear"
+			from
+				(
+				select
+					*
+				from
+					(
+					select
+						b2."MinistryID" as "MinistryID",
+						b2.id as "ProgrammeID",
+						b2."ProgrammeTitle" as "ProgrammeTitle" ,
+						b."ValueCode" as "ValueCode",
+						b."ValueName" as "ValueName",
+						b."ValueYear" as "ValueYear",
+						b."ValueAmount" as "ValueAmount",
+						b.id as "ProgrammeExpenditureID",
+						b."DocumentID" as "DocumentID"
+					from
+						budgetprogrammeexpenditure
+					b
+					inner join budgetprogramme b2 on
+						b."ProgrammeID" = b2.id
+					where
+						b2."MinistryID" = $1
+			) a1
+				inner join ministry m on
+					a1."MinistryID" = m.id) a2
+			inner join budgetdocuments b3 on
+				a2."DocumentID" = b3.id
+				where a2."ProgrammeTitle" != ''
+			`
+	programmes := []*types.ProgrammeExpenditure{}
+	err := s.db.Select(&programmes, sqlStmt, ministryID)
+	return programmes, err
 }
 
 func (s *PostgresStore) GetProjectExpenditureByQuery(query string) ([]*types.ProjectExpenditure, error) {
@@ -524,7 +573,11 @@ func (s *PostgresStore) ListTopNPersonnelByMinistryID(ministryID int, n int, sta
 				from
 					budgetpersonnel b
 				where
-					"MinistryID" = $1`
+					"MinistryID" = $1
+				and
+					"category" != 'TOTAL'	
+					`
+
 	if startYear > 0 {
 		sqlStmt += fmt.Sprintf(" and \"ValueYear\" >= %d ", startYear)
 	}

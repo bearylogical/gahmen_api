@@ -38,6 +38,18 @@ func (h *Handler) GetProjectExpenditureByID(w http.ResponseWriter, r *http.Reque
 	return helpers.WriteJSON(w, http.StatusOK, documents)
 }
 
+func (h *Handler) GetProgrammeExpenditureByMinistryID(w http.ResponseWriter, r *http.Request) error {
+	ministry_id, err := helpers.GetIntByResponseField(r, "ministry_id")
+	if err != nil {
+		return err
+	}
+	documents, err := h.store.GetProgrammeExpenditureByMinistryID(ministry_id)
+	if err != nil {
+		return err
+	}
+	return helpers.WriteJSON(w, http.StatusOK, documents)
+}
+
 func (h *Handler) GetProjectExpenditureByQuery(w http.ResponseWriter, r *http.Request) error {
 	query, err := helpers.GetStringByResponseQuery(r, "query")
 	if err != nil {
