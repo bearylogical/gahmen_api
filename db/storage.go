@@ -24,10 +24,11 @@ type Storage interface {
 	ListProjectsByMinistryID(int) ([]*types.MinistryProject, error)
 	GetSGDILinkByMinistryID(int) ([]*types.SGDILINK, error)
 	GetProgrammeExpenditureByMinistryID(int) ([]*types.ProgrammeExpenditure, error)
-	ListExpenditureByMinistryID(int) ([]*types.MinistryExpenditureType, error)
-	ListExpenditure(string, int) ([]*types.MinistryExpenditureType, error)
+	ListExpenditureByMinistryID(int) ([]*types.MinistryExpenditures, error)
+	ListExpenditure(string, int) ([]*types.MinistryExpenditures, error)
 	GetBudgetOpts() ([]*types.MinistryExpenditureOptions, error)
 	ListTopNPersonnelByMinistryID(int, int, int) ([]*types.MinistryPersonnel, error)
+	GetMinistryDataByID(int, int, int) (*types.MinistryResult, error)
 }
 
 type PostgresStore struct {
@@ -422,7 +423,7 @@ func (s *PostgresStore) GetProjectExpenditureByID(projectID int) ([]*types.Proje
 	return projects, err
 }
 
-func (s *PostgresStore) ListExpenditureByMinistryID(ministryID int) ([]*types.MinistryExpenditureType, error) {
+func (s *PostgresStore) ListExpenditureByMinistryID(ministryID int) ([]*types.MinistryExpenditures, error) {
 	sqlStmt := `select
 				"ValueAmount",
 							"ExpenditureType" ,
@@ -431,15 +432,15 @@ func (s *PostgresStore) ListExpenditureByMinistryID(ministryID int) ([]*types.Mi
 							"Name" as "MinistryName"
 			from
 				(
-				select
+			select
 							sum("ValueAmount") as "ValueAmount",
 							"ExpenditureType" ,
 							"ValueType",
 							"ValueYear",
 							"MinistryID"
-				from
+			from
 							(
-					select
+			select
 								distinct "ObjectClass",
 								"ObjectCode",
 								"ValueType",
@@ -448,14 +449,16 @@ func (s *PostgresStore) ListExpenditureByMinistryID(ministryID int) ([]*types.Mi
 								"MinistryID",
 								case
 									when cast("ObjectCode" as int) > 5200 then 'OTHER'
-							when cast("ObjectCode" as int) > 5000 then 'DEVELOPMENT'
-							else 'OPERATING'
-						end as "ExpenditureType"
-					from
-								budgetexpenditure b ) a
-				where
+				when cast("ObjectCode" as int) > 5000 then 'DEVELOPMENT'
+				else 'OPERATING'
+			end as "ExpenditureType"
+			from
+								budgetexpenditure b
+			where
+			b."ObjectCode" <> '9999') a
+			where
 							a."MinistryID" = $1
-				group by
+			group by
 							a."MinistryID",
 							a."ExpenditureType",
 							a."ValueType",
@@ -465,7 +468,7 @@ func (s *PostgresStore) ListExpenditureByMinistryID(ministryID int) ([]*types.Mi
 			where
 				m."Name" != ''
 			`
-	expenditures := []*types.MinistryExpenditureType{}
+	expenditures := []*types.MinistryExpenditures{}
 	err := s.db.Select(&expenditures, sqlStmt, ministryID)
 	return expenditures, err
 }
@@ -510,7 +513,7 @@ func (s *PostgresStore) ListProjectsByMinistryID(ministryID int) ([]*types.Minis
 	return projects, err
 }
 
-func (s *PostgresStore) ListExpenditure(valueType string, valueYear int) ([]*types.MinistryExpenditureType, error) {
+func (s *PostgresStore) ListExpenditure(valueType string, valueYear int) ([]*types.MinistryExpenditures, error) {
 	sqlStmt := `select
 					concat(c."MinistryName",
 					'/',
@@ -547,7 +550,7 @@ func (s *PostgresStore) ListExpenditure(valueType string, valueYear int) ([]*typ
 						"ValueYear" = $1 and
 						"ValueType" = $2 and "Name" != '' ) c
 			`
-	expenditures := []*types.MinistryExpenditureType{}
+	expenditures := []*types.MinistryExpenditures{}
 	err := s.db.Select(&expenditures, sqlStmt, valueYear, valueType)
 	return expenditures, err
 }
@@ -591,4 +594,35 @@ func (s *PostgresStore) ListTopNPersonnelByMinistryID(ministryID int, n int, sta
 	opts := []*types.MinistryPersonnel{}
 	err := s.db.Select(&opts, sqlStmt, ministryID)
 	return opts, err
+}
+
+func (s *PostgresStore) GetMinistryDataByID(ministryID int, n int, startYear int) (*types.MinistryResult, error) {
+
+	ministry := &types.MinistryResult{}
+
+	programmes, err := s.GetProgrammeExpenditureByMinistryID(ministryID)
+	if err != nil {
+		return nil, err
+	}
+	projects, err := s.ListProjectExpenditureByMinistryID(ministryID)
+	if err != nil {
+		return nil, err
+	}
+	expenditures, err := s.ListExpenditureByMinistryID(ministryID)
+	if err != nil {
+		return nil, err
+	}
+	personnel, err := s.ListTopNPersonnelByMinistryID(ministryID, n, startYear)
+	if err != nil {
+		return nil, err
+	}
+
+	ministry.MinistryID = ministryID
+	ministry.MinistryName = programmes[0].Ministry
+	ministry.MinistryExpenditures = expenditures
+	ministry.ProgrammeExpenditures = programmes
+	ministry.ProjectExpenditures = projects
+	ministry.MinistryPersonnel = personnel
+
+	return ministry, nil
 }

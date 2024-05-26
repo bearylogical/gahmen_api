@@ -46,6 +46,9 @@ func (s *APIServer) Run() {
 	router.HandleFunc("GET /api/v1/sgdi/{ministry_id}/links", makeHttpHandleFunc(handler.ListSGDILinksByMinistryID))
 	router.HandleFunc("GET /api/v1/personnel", makeHttpHandleFunc(handler.ListTopNPersonnelByMinistryID))
 
+	// v2 api
+	router.HandleFunc("GET /api/v2/budget", makeHttpHandleFunc(handler.GetMinistryDataV2))
+
 	log.Print("JSON API server running on port", s.listenAddr)
 	server := http.Server{
 		Addr:    s.listenAddr,

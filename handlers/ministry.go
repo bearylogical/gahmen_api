@@ -46,3 +46,25 @@ func (h *Handler) DeleteMinistryByID(w http.ResponseWriter, r *http.Request) err
 	}
 	return helpers.WriteJSON(w, http.StatusOK, fmt.Sprintf("ministry with id %d deleted", id))
 }
+
+func (h *Handler) GetMinistryDataV2(w http.ResponseWriter, r *http.Request) error {
+	ministry_id, err := helpers.GetIntByResponseQuery(r, "ministryID")
+	if err != nil {
+		return err
+	}
+	top_n, err := helpers.GetIntByResponseQuery(r, "topN")
+	if err != nil {
+		return err
+	}
+
+	start_year, err := helpers.GetIntByResponseQuery(r, "startYear")
+	if err != nil {
+		return err
+	}
+	ministry, err := h.store.GetMinistryDataByID(ministry_id, top_n, start_year)
+	if err != nil {
+		return err
+	}
+
+	return helpers.WriteJSON(w, http.StatusOK, ministry)
+}

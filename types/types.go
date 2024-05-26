@@ -61,7 +61,7 @@ type MinistryProject struct {
 	ProjectId    int    `db:"ProjectID" json:"project_id"`
 }
 
-type MinistryExpenditureType struct {
+type MinistryExpenditures struct {
 	MinistryName    string  `db:"MinistryName" json:"ministry_id"`
 	ObjectPath      string  `db:"ObjectPath" json:"object_path"`
 	ObjectClass     string  `db:"ObjectClass" json:"object_class"`
@@ -90,6 +90,15 @@ type MinistryPersonnel struct {
 	ValueAmount    *int    `db:"ValueAmount" json:"value_amount"`
 	ValueYear      *int    `db:"ValueYear" json:"value_year"`
 	ValueType      *string `db:"ValueType" json:"value_type"`
+}
+
+type MinistryResult struct {
+	MinistryName          string                  `db:"MinistryName" json:"ministry_name"`
+	MinistryID            int                     `db:"MinistryID" json:"ministry_id"`
+	ProgrammeExpenditures []*ProgrammeExpenditure `json:"programme_expenditures"`
+	ProjectExpenditures   []*ProjectExpenditure   `json:"project_expenditures"`
+	MinistryExpenditures  []*MinistryExpenditures `json:"ministry_expenditures"`
+	MinistryPersonnel     []*MinistryPersonnel    `json:"ministry_personnel"`
 }
 
 func NewMinistry(name string) *Ministry {
