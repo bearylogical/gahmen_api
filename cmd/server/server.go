@@ -37,7 +37,7 @@ func (s *APIServer) Run() {
 	router.HandleFunc("GET /api/v1/ministries/{ministry_id}", makeHttpHandleFunc(handler.GetMinistryByID))
 	router.HandleFunc("GET /api/v1/budget/{ministry_id}/documents", makeHttpHandleFunc(handler.ListDocumentByMinistryID))
 	router.HandleFunc("GET /api/v1/budget", makeHttpHandleFunc(handler.ListExpenditure))
-	router.HandleFunc("POST /api/v1/projects", makeHttpHandleFunc(handler.GetProjectExpenditureByQuery))
+
 	router.HandleFunc("GET /api/v1/projects/{project_id}", makeHttpHandleFunc(handler.GetProjectExpenditureByID))
 	router.HandleFunc("GET /api/v1/budget/{ministry_id}/programmes", makeHttpHandleFunc(handler.GetProgrammeExpenditureByMinistryID))
 	router.HandleFunc("GET /api/v1/budget/opts", makeHttpHandleFunc(handler.GetBudgetOpts))
@@ -48,6 +48,7 @@ func (s *APIServer) Run() {
 
 	// v2 api
 	router.HandleFunc("GET /api/v2/budget", makeHttpHandleFunc(handler.GetMinistryDataV2))
+	router.HandleFunc("POST /api/v2/projects", makeHttpHandleFunc(handler.GetProjectExpenditureByQuery))
 
 	log.Print("JSON API server running on port", s.listenAddr)
 	server := http.Server{

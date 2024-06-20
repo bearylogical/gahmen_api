@@ -57,7 +57,6 @@ func (h *Handler) GetProjectExpenditureByQuery(w http.ResponseWriter, r *http.Re
 	}
 	// replace all spaces with ' & ' to allow for multiple search terms
 	query = strings.Replace(query, " ", " & ", -1)
-	println(query)
 	documents, err := h.store.GetProjectExpenditureByQuery(query)
 	if err != nil {
 		return err
