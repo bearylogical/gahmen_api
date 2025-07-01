@@ -21,8 +21,7 @@ RUN chmod +x ./scripts/post_swag.sh
 
 # Generate Swagger docs
 RUN go install github.com/swaggo/swag/cmd/swag@latest
-RUN /go/bin/swag init -g cmd/app/main.go
-
+RUN /go/bin/swag init -g cmd/app/main.go && ls -l ./docs
 RUN ./scripts/post_swag.sh
 
 # Build the application

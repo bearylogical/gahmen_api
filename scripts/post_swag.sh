@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/bin/sh
 
-DOCS_FILE="/Users/syamil/Projects/gahmen_api/docs/docs.go"
+DOCS_FILE="./docs/docs.go"
 
 # Add os import
 sed -i '' 's#import "github.com/swaggo/swag"#import (\n\t"github.com/swaggo/swag"\n\t"os"\n)#g' $DOCS_FILE
