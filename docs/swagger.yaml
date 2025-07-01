@@ -1,0 +1,462 @@
+basePath: /api/v1
+definitions:
+  types.BudgetOpts:
+    properties:
+      value_type:
+        type: string
+      value_year:
+        type: integer
+    type: object
+  types.Document:
+    properties:
+      createdAt:
+        type: string
+      document_id:
+        type: integer
+      document_name:
+        type: string
+      document_path:
+        type: string
+      md5_hash:
+        type: string
+      ministry:
+        type: string
+      year:
+        type: integer
+    type: object
+  types.Expenditure:
+    properties:
+      ministry_id:
+        type: string
+      value_amount:
+        type: number
+      value_type:
+        type: string
+      value_year:
+        type: integer
+    type: object
+  types.Ministry:
+    properties:
+      createdAt:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+    type: object
+  types.Personnel:
+    properties:
+      category:
+        type: string
+      personnel_type:
+        type: string
+      value_amount:
+        type: integer
+      value_type:
+        type: string
+      value_year:
+        type: integer
+    type: object
+  types.ProgrammeExpenditure:
+    properties:
+      document_id:
+        type: integer
+      document_year:
+        type: integer
+      expenditure_id:
+        type: integer
+      ministry:
+        type: string
+      ministry_id:
+        type: integer
+      programme_id:
+        type: integer
+      programme_title:
+        type: string
+      value_amount:
+        type: number
+      value_code:
+        type: string
+      value_name:
+        type: string
+      value_year:
+        type: integer
+    type: object
+  types.ProjectExpenditure:
+    properties:
+      document_id:
+        type: integer
+      document_year:
+        type: integer
+      expenditure_id:
+        type: integer
+      ministry:
+        type: string
+      ministry_id:
+        type: integer
+      parent_header:
+        type: string
+      project_id:
+        type: integer
+      project_title:
+        type: string
+      value_amount:
+        type: number
+      value_type:
+        type: string
+      value_year:
+        type: integer
+    type: object
+  types.SGDILink:
+    properties:
+      child_name:
+        type: string
+      child_url:
+        type: string
+      parent_name:
+        type: string
+      parent_url:
+        type: string
+    type: object
+externalDocs:
+  description: OpenAPI
+  url: https://swagger.io/resources/open-api/
+info:
+  contact:
+    email: syamil@bearylogical.net
+    name: Syamil Maulod
+    url: https://bearylogical.net
+  description: Gahmen Budget API provides access to Singapore's government budget
+    data.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Gahmen Budget API
+  version: "1.0"
+paths:
+  /budget:
+    get:
+      description: List expenditure
+      parameters:
+      - description: Value Year
+        in: query
+        name: valueYear
+        required: true
+        type: integer
+      - description: Value Type
+        in: query
+        name: valueType
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.Expenditure'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List expenditure
+      tags:
+      - budget
+  /budget/{ministry_id}:
+    get:
+      description: List expenditure by ministry
+      parameters:
+      - description: Ministry ID
+        in: path
+        name: ministry_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.Expenditure'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List expenditure by ministry
+      tags:
+      - budget
+  /budget/{ministry_id}/documents:
+    get:
+      description: List documents by ministry ID
+      parameters:
+      - description: Ministry ID
+        in: path
+        name: ministry_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.Document'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List documents by ministry ID
+      tags:
+      - documents
+  /budget/{ministry_id}/programmes:
+    get:
+      description: Get programme expenditure by ministry ID
+      parameters:
+      - description: Ministry ID
+        in: path
+        name: ministry_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.ProgrammeExpenditure'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Get programme expenditure by ministry ID
+      tags:
+      - budget
+  /budget/{ministry_id}/projects:
+    get:
+      description: List project expenditure by ministry ID
+      parameters:
+      - description: Ministry ID
+        in: path
+        name: ministry_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.ProjectExpenditure'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List project expenditure by ministry ID
+      tags:
+      - budget
+  /budget/opts:
+    get:
+      description: Get budget options
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.BudgetOpts'
+      security:
+      - BearerAuth: []
+      summary: Get budget options
+      tags:
+      - budget
+  /health:
+    get:
+      description: Check if the API is up and running
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 'status: UP'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Health Check
+      tags:
+      - Health
+  /ministries:
+    get:
+      description: Get all ministries
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.Ministry'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List all ministries
+      tags:
+      - ministries
+  /ministries/{ministry_id}:
+    get:
+      description: Get a ministry by ID
+      parameters:
+      - description: Ministry ID
+        in: path
+        name: ministry_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.Ministry'
+      security:
+      - BearerAuth: []
+      summary: Get a ministry by ID
+      tags:
+      - ministries
+  /personnel:
+    get:
+      description: List top N personnel by ministry ID
+      parameters:
+      - description: Ministry ID
+        in: query
+        name: ministryID
+        required: true
+        type: integer
+      - description: Top N
+        in: query
+        name: topN
+        required: true
+        type: integer
+      - description: Start Year
+        in: query
+        name: startYear
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.Personnel'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List top N personnel by ministry ID
+      tags:
+      - personnel
+  /projects:
+    post:
+      description: Get project expenditure by query
+      parameters:
+      - description: Query
+        in: query
+        name: query
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.ProjectExpenditure'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: Get project expenditure by query
+      tags:
+      - budget
+  /projects/{project_id}:
+    get:
+      description: Get project expenditure by ID
+      parameters:
+      - description: Project ID
+        in: path
+        name: project_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.ProjectExpenditure'
+      security:
+      - BearerAuth: []
+      summary: Get project expenditure by ID
+      tags:
+      - budget
+  /sgdi/{ministry_id}/links:
+    get:
+      description: List SGDI links by ministry ID
+      parameters:
+      - description: Ministry ID
+        in: path
+        name: ministry_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/types.SGDILink'
+            type: array
+      security:
+      - BearerAuth: []
+      summary: List SGDI links by ministry ID
+      tags:
+      - sgdi
+  /v2/budget:
+    get:
+      description: Get ministry data by ID
+      parameters:
+      - description: Ministry ID
+        in: query
+        name: ministryID
+        required: true
+        type: integer
+      - description: Top N
+        in: query
+        name: topN
+        required: true
+        type: integer
+      - description: Start Year
+        in: query
+        name: startYear
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/types.Ministry'
+      summary: Get ministry data by ID
+      tags:
+      - ministries
+schemes:
+- http
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

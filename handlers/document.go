@@ -6,6 +6,14 @@ import (
 	"gahmen-api/helpers"
 )
 
+// @Summary List documents by ministry ID
+// @Description List documents by ministry ID
+// @Tags documents
+// @Produce  json
+// @Param ministry_id path int true "Ministry ID"
+// @Success 200 {array} types.Document
+// @Router /budget/{ministry_id}/documents [get]
+// @Security BearerAuth
 func (h *Handler) ListDocumentByMinistryID(w http.ResponseWriter, r *http.Request) error {
 	ministry_id, err := helpers.GetIntByResponseField(r, "ministry_id")
 	if err != nil {

@@ -7,6 +7,13 @@ import (
 	"gahmen-api/helpers"
 )
 
+// @Summary List all ministries
+// @Description Get all ministries
+// @Tags ministries
+// @Produce  json
+// @Success 200 {array} types.Ministry
+// @Router /ministries [get]
+// @Security BearerAuth
 func (h *Handler) ListMinistries(w http.ResponseWriter, r *http.Request) error {
 	ministryFlag, err := helpers.GetBoolByResponseQuery(r, "isMinistry")
 	if err != nil {
@@ -19,6 +26,14 @@ func (h *Handler) ListMinistries(w http.ResponseWriter, r *http.Request) error {
 	return helpers.WriteJSON(w, http.StatusOK, ministries)
 }
 
+// @Summary Get a ministry by ID
+// @Description Get a ministry by ID
+// @Tags ministries
+// @Produce  json
+// @Param ministry_id path int true "Ministry ID"
+// @Success 200 {object} types.Ministry
+// @Router /ministries/{ministry_id} [get]
+// @Security BearerAuth
 func (h *Handler) GetMinistryByID(w http.ResponseWriter, r *http.Request) error {
 	id, err := helpers.GetIntByResponseField(r, "ministry_id")
 	if err != nil {
@@ -47,6 +62,15 @@ func (h *Handler) DeleteMinistryByID(w http.ResponseWriter, r *http.Request) err
 	return helpers.WriteJSON(w, http.StatusOK, fmt.Sprintf("ministry with id %d deleted", id))
 }
 
+// @Summary Get ministry data by ID
+// @Description Get ministry data by ID
+// @Tags ministries
+// @Produce  json
+// @Param ministryID query int true "Ministry ID"
+// @Param topN query int true "Top N"
+// @Param startYear query int true "Start Year"
+// @Success 200 {object} types.Ministry
+// @Router /v2/budget [get]
 func (h *Handler) GetMinistryDataV2(w http.ResponseWriter, r *http.Request) error {
 	ministry_id, err := helpers.GetIntByResponseQuery(r, "ministryID")
 	if err != nil {

@@ -1,6 +1,9 @@
 package middleware
 
-import "net/http"
+import (
+	"net/http"
+	"time"
+)
 
 type Middleware func(http.Handler) http.Handler
 
@@ -13,4 +16,11 @@ func CreateStack(xs ...Middleware) Middleware {
 
 		return next
 	}
+}
+
+func RateLimit(next http.Handler) http.Handler {
+	rateLimiter := NewRateLimiter(10, time.Minute) // 10 requests per minute
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		rateLimiter.RateLimit(next.ServeHTTP).ServeHTTP(w, r)
+	})
 }

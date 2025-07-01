@@ -1,11 +1,9 @@
+# Dockerfile
 
-# Start from the latest golang base image
-FROM golang:1.22
+# Build stage
+FROM golang:1.24.4-alpine AS builder
 
-# Add Maintainer Info
-LABEL maintainer="Syamil Maulod <syamil@bearylogical.net>"
-
-# Set the Current Working Directory inside the container
+# Set the working directory
 WORKDIR /app
 
 # Copy go mod and sum files
@@ -14,14 +12,24 @@ COPY go.mod go.sum ./
 # Download all dependencies. Dependencies will be cached if the go.mod and go.sum files are not changed
 RUN go mod download
 
-# Copy the source from the current directory to the Working Directory inside the container
+# Copy the source code
 COPY . .
 
-# Build the Go app
-RUN make build-docker
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /app/main ./cmd/app
 
-# Expose port 3080 to the outside world
+# Final stage
+FROM alpine:latest
+RUN apk add --no-cache curl
+
+# Set the working directory
+WORKDIR /app
+
+# Copy the built binary from the builder stage
+COPY --from=builder /app/main .
+
+# Expose port 8080 to the outside world
 EXPOSE 3080
 
 # Command to run the executable
-CMD ["/gahmen-api"]
+CMD ["./main"]

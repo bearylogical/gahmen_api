@@ -22,13 +22,13 @@ type Storage interface {
 	GetProjectExpenditureByID(int) ([]*types.ProjectExpenditure, error)
 	GetProjectExpenditureByQuery(string) ([]*types.ProjectExpenditure, error)
 	ListProjectsByMinistryID(int) ([]*types.MinistryProject, error)
-	GetSGDILinkByMinistryID(int) ([]*types.SGDILINK, error)
+	GetSGDILinkByMinistryID(int) ([]*types.SGDILink, error)
 	GetProgrammeExpenditureByMinistryID(int) ([]*types.ProgrammeExpenditure, error)
-	ListExpenditureByMinistryID(int) ([]*types.MinistryExpenditures, error)
-	ListExpenditure(string, int) ([]*types.MinistryExpenditures, error)
-	GetBudgetOpts() ([]*types.MinistryExpenditureOptions, error)
-	ListTopNPersonnelByMinistryID(int, int, int) ([]*types.MinistryPersonnel, error)
-	GetMinistryDataByID(int, int, int) (*types.MinistryResult, error)
+	ListExpenditureByMinistryID(int) ([]*types.Expenditures, error)
+	ListExpenditure(string, int) ([]*types.Expenditures, error)
+	GetBudgetOpts() ([]*types.BudgetOpts, error)
+	ListTopNPersonnelByMinistryID(int, int, int) ([]*types.Personnel, error)
+	GetMinistryDataByID(int, int, int) (*types.MinistryData, error)
 }
 
 type PostgresStore struct {
@@ -37,7 +37,7 @@ type PostgresStore struct {
 
 // create a postgres store from a config struc
 func NewPostgresStore(c *config.Config) (*PostgresStore, error) {
-	connStr := "host=" + c.PostgresHost + " user=" + c.PostgresUser + " dbname=" + c.PostgresDBName + " password=" + c.PostgresPasword + " sslmode=disable"
+	connStr := "host=" + c.PostgresHost + " user=" + c.PostgresUser + " dbname=" + c.PostgresDBName + " password=" + c.PostgresPasword + " sslmode=disable" + " port=" + c.PostgresPort
 	db, err := sqlx.Connect("postgres", connStr)
 	if err != nil {
 		return nil, err
@@ -423,7 +423,7 @@ func (s *PostgresStore) GetProjectExpenditureByID(projectID int) ([]*types.Proje
 	return projects, err
 }
 
-func (s *PostgresStore) ListExpenditureByMinistryID(ministryID int) ([]*types.MinistryExpenditures, error) {
+func (s *PostgresStore) ListExpenditureByMinistryID(ministryID int) ([]*types.Expenditures, error) {
 	sqlStmt := `select
 				"ValueAmount",
 							"ExpenditureType" ,
@@ -468,12 +468,12 @@ func (s *PostgresStore) ListExpenditureByMinistryID(ministryID int) ([]*types.Mi
 			where
 				m."Name" != ''
 			`
-	expenditures := []*types.MinistryExpenditures{}
+	expenditures := []*types.Expenditures{}
 	err := s.db.Select(&expenditures, sqlStmt, ministryID)
 	return expenditures, err
 }
 
-func (s *PostgresStore) GetSGDILinkByMinistryID(ministryID int) ([]*types.SGDILINK, error) {
+func (s *PostgresStore) GetSGDILinkByMinistryID(ministryID int) ([]*types.SGDILink, error) {
 	sqlStmt := `select
 				o2."Name" as child,
 				o."Name" as parent,
@@ -492,7 +492,7 @@ func (s *PostgresStore) GetSGDILinkByMinistryID(ministryID int) ([]*types.SGDILI
 				o2."ParentID" = o.id
 			where
 				o2."MinistryID" = $1`
-	links := []*types.SGDILINK{}
+			links := []*types.SGDILink{}
 	err := s.db.Select(&links, sqlStmt, ministryID)
 	return links, err
 }
@@ -513,7 +513,7 @@ func (s *PostgresStore) ListProjectsByMinistryID(ministryID int) ([]*types.Minis
 	return projects, err
 }
 
-func (s *PostgresStore) ListExpenditure(valueType string, valueYear int) ([]*types.MinistryExpenditures, error) {
+func (s *PostgresStore) ListExpenditure(valueType string, valueYear int) ([]*types.Expenditures, error) {
 	sqlStmt := `select
 					concat(c."MinistryName",
 					'/',
@@ -550,23 +550,23 @@ func (s *PostgresStore) ListExpenditure(valueType string, valueYear int) ([]*typ
 						"ValueYear" = $1 and
 						"ValueType" = $2 and "Name" != '' ) c
 			`
-	expenditures := []*types.MinistryExpenditures{}
+	expenditures := []*types.Expenditures{}
 	err := s.db.Select(&expenditures, sqlStmt, valueYear, valueType)
 	return expenditures, err
 }
 
-func (s *PostgresStore) GetBudgetOpts() ([]*types.MinistryExpenditureOptions, error) {
+func (s *PostgresStore) GetBudgetOpts() ([]*types.BudgetOpts, error) {
 	sqlStmt := `select
 					distinct("ValueType"),
 					"ValueYear"
 				from
 					budgetexpenditure b`
-	opts := []*types.MinistryExpenditureOptions{}
+	opts := []*types.BudgetOpts{}
 	err := s.db.Select(&opts, sqlStmt)
 	return opts, err
 }
 
-func (s *PostgresStore) ListTopNPersonnelByMinistryID(ministryID int, n int, startYear int) ([]*types.MinistryPersonnel, error) {
+func (s *PostgresStore) ListTopNPersonnelByMinistryID(ministryID int, n int, startYear int) ([]*types.Personnel, error) {
 	sqlStmt := `select
 					category,
 					"ParentHeader" as "ParentCategory" ,
@@ -591,14 +591,14 @@ func (s *PostgresStore) ListTopNPersonnelByMinistryID(ministryID int, n int, sta
 	sqlStmt += `order by
 	"ValueAmount" desc`
 
-	opts := []*types.MinistryPersonnel{}
+	opts := []*types.Personnel{}
 	err := s.db.Select(&opts, sqlStmt, ministryID)
 	return opts, err
 }
 
-func (s *PostgresStore) GetMinistryDataByID(ministryID int, n int, startYear int) (*types.MinistryResult, error) {
+func (s *PostgresStore) GetMinistryDataByID(ministryID int, n int, startYear int) (*types.MinistryData, error) {
 
-	ministry := &types.MinistryResult{}
+	ministry := &types.MinistryData{}
 
 	programmes, err := s.GetProgrammeExpenditureByMinistryID(ministryID)
 	if err != nil {

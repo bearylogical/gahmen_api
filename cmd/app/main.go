@@ -8,6 +8,27 @@ import (
 	storage "gahmen-api/db"
 )
 
+// @title           Gahmen Budget API
+// @version         1.0
+// @description     Gahmen Budget API provides access to Singapore's government budget data.
+// @termsOfService  http://swagger.io/terms/
+
+// @contact.name   Syamil Maulod
+// @contact.url    https://bearylogical.net
+// @contact.email  syamil@bearylogical.net
+
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
+
+// @BasePath  /api/v1
+// @schemes   http
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
+
+// @externalDocs.description  OpenAPI
+// @externalDocs.url          https://swagger.io/resources/open-api/
 func main() {
 	log.Println("Starting Gahmen API server...")
 	config := config.NewConfig()

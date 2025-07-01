@@ -19,6 +19,10 @@ type Config struct {
 	PostgresDBName string
 	// the password to connect to the database
 	PostgresPasword string
+	// Supabase JWT Secret for verifying tokens
+	SupabaseJWTSecret string
+	// Supabase JWKS URL for fetching public keys
+	SupabaseJWKSURL string
 }
 
 // create a new config struct with default values
@@ -43,6 +47,9 @@ func (c *Config) Validate() error {
 	if c.PostgresPasword == "" {
 		return ErrMissingConfig
 	}
+	if c.SupabaseJWTSecret == "" && c.SupabaseJWKSURL == "" {
+		return errors.New("either SUPABASE_JWT_SECRET or SUPABASE_JWKS_URL must be provided")
+	}
 	return nil
 }
 
@@ -58,6 +65,8 @@ func (c *Config) Parse() error {
 	c.PostgresUser = os.Getenv("POSTGRES_USER")
 	c.PostgresDBName = os.Getenv("POSTGRES_DB")
 	c.PostgresPasword = os.Getenv("POSTGRES_PASSWORD")
+	c.SupabaseJWTSecret = os.Getenv("SUPABASE_JWT_SECRET")
+	c.SupabaseJWKSURL = os.Getenv("SUPABASE_JWKS_URL")
 	log.Print("Gahmen API Configuration loaded")
 	return nil
 }

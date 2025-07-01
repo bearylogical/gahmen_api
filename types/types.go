@@ -20,7 +20,7 @@ type Document struct {
 	CreatedAt    time.Time `json:"createdAt"`
 }
 
-type SGDILINK struct {
+type SGDILink struct {
 	ChildName  string  `db:"child" json:"child_name"`
 	ParentName *string `db:"parent" json:"parent_name"`
 	ChildURL   string  `db:"child_url" json:"child_url"`
@@ -61,7 +61,7 @@ type MinistryProject struct {
 	ProjectId    int    `db:"ProjectID" json:"project_id"`
 }
 
-type MinistryExpenditures struct {
+type Expenditures struct {
 	MinistryName    string  `db:"MinistryName" json:"ministry_id"`
 	ObjectPath      string  `db:"ObjectPath" json:"object_path"`
 	ObjectClass     string  `db:"ObjectClass" json:"object_class"`
@@ -72,19 +72,19 @@ type MinistryExpenditures struct {
 	ValueYear       int     `db:"ValueYear" json:"value_year"`
 }
 
-type MinistryExpenditure struct {
+type Expenditure struct {
 	MinistryName string  `db:"MinistryName" json:"ministry_id"`
 	ValueType    string  `db:"ValueType" json:"value_type"`
 	ValueAmount  float32 `db:"ValueAmount" json:"value_amount"`
 	ValueYear    int     `db:"ValueYear" json:"value_year"`
 }
 
-type MinistryExpenditureOptions struct {
+type BudgetOpts struct {
 	ValueType string `db:"ValueType" json:"value_type"`
 	ValueYear int    `db:"ValueYear" json:"value_year"`
 }
 
-type MinistryPersonnel struct {
+type Personnel struct {
 	Category       string  `db:"category" json:"personnel_type"`
 	ParentCategory string  `db:"ParentCategory" json:"category"`
 	ValueAmount    *int    `db:"ValueAmount" json:"value_amount"`
@@ -92,13 +92,13 @@ type MinistryPersonnel struct {
 	ValueType      *string `db:"ValueType" json:"value_type"`
 }
 
-type MinistryResult struct {
+type MinistryData struct {
 	MinistryName          string                  `db:"MinistryName" json:"ministry_name"`
 	MinistryID            int                     `db:"MinistryID" json:"ministry_id"`
 	ProgrammeExpenditures []*ProgrammeExpenditure `json:"programme_expenditures"`
 	ProjectExpenditures   []*ProjectExpenditure   `json:"project_expenditures"`
-	MinistryExpenditures  []*MinistryExpenditures `json:"ministry_expenditures"`
-	MinistryPersonnel     []*MinistryPersonnel    `json:"ministry_personnel"`
+	MinistryExpenditures  []*Expenditures `json:"ministry_expenditures"`
+	MinistryPersonnel     []*Personnel    `json:"ministry_personnel"`
 }
 
 func NewMinistry(name string) *Ministry {

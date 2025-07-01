@@ -26,6 +26,14 @@ func (h *Handler) ListProjectByMinistryID(w http.ResponseWriter, r *http.Request
 	return helpers.WriteJSON(w, http.StatusOK, projects)
 }
 
+// @Summary Get project expenditure by ID
+// @Description Get project expenditure by ID
+// @Tags budget
+// @Produce  json
+// @Param project_id path int true "Project ID"
+// @Success 200 {object} types.ProjectExpenditure
+// @Router /projects/{project_id} [get]
+// @Security BearerAuth
 func (h *Handler) GetProjectExpenditureByID(w http.ResponseWriter, r *http.Request) error {
 	project_id, err := helpers.GetIntByResponseField(r, "project_id")
 	if err != nil {
@@ -38,6 +46,14 @@ func (h *Handler) GetProjectExpenditureByID(w http.ResponseWriter, r *http.Reque
 	return helpers.WriteJSON(w, http.StatusOK, documents)
 }
 
+// @Summary Get programme expenditure by ministry ID
+// @Description Get programme expenditure by ministry ID
+// @Tags budget
+// @Produce  json
+// @Param ministry_id path int true "Ministry ID"
+// @Success 200 {array} types.ProgrammeExpenditure
+// @Router /budget/{ministry_id}/programmes [get]
+// @Security BearerAuth
 func (h *Handler) GetProgrammeExpenditureByMinistryID(w http.ResponseWriter, r *http.Request) error {
 	ministry_id, err := helpers.GetIntByResponseField(r, "ministry_id")
 	if err != nil {
@@ -50,6 +66,14 @@ func (h *Handler) GetProgrammeExpenditureByMinistryID(w http.ResponseWriter, r *
 	return helpers.WriteJSON(w, http.StatusOK, documents)
 }
 
+// @Summary Get project expenditure by query
+// @Description Get project expenditure by query
+// @Tags budget
+// @Produce  json
+// @Param query query string true "Query"
+// @Success 200 {array} types.ProjectExpenditure
+// @Router /projects [post]
+// @Security BearerAuth
 func (h *Handler) GetProjectExpenditureByQuery(w http.ResponseWriter, r *http.Request) error {
 	query, err := helpers.GetStringByResponseQuery(r, "query")
 	if err != nil {
@@ -64,6 +88,14 @@ func (h *Handler) GetProjectExpenditureByQuery(w http.ResponseWriter, r *http.Re
 	return helpers.WriteJSON(w, http.StatusOK, documents)
 }
 
+// @Summary List project expenditure by ministry ID
+// @Description List project expenditure by ministry ID
+// @Tags budget
+// @Produce  json
+// @Param ministry_id path int true "Ministry ID"
+// @Success 200 {array} types.ProjectExpenditure
+// @Router /budget/{ministry_id}/projects [get]
+// @Security BearerAuth
 func (h *Handler) ListProjectExpenditureByMinistryID(w http.ResponseWriter, r *http.Request) error {
 	ministry_id, err := helpers.GetIntByResponseField(r, "ministry_id")
 	if err != nil {
@@ -76,6 +108,14 @@ func (h *Handler) ListProjectExpenditureByMinistryID(w http.ResponseWriter, r *h
 	return helpers.WriteJSON(w, http.StatusOK, projects)
 }
 
+// @Summary List expenditure by ministry
+// @Description List expenditure by ministry
+// @Tags budget
+// @Produce  json
+// @Param ministry_id path int true "Ministry ID"
+// @Success 200 {array} types.Expenditure
+// @Router /budget/{ministry_id} [get]
+// @Security BearerAuth
 func (h *Handler) ListExpenditureByMinistry(w http.ResponseWriter, r *http.Request) error {
 	ministry_id, err := helpers.GetIntByResponseField(r, "ministry_id")
 	if err != nil {
@@ -88,6 +128,15 @@ func (h *Handler) ListExpenditureByMinistry(w http.ResponseWriter, r *http.Reque
 	return helpers.WriteJSON(w, http.StatusOK, documents)
 }
 
+// @Summary List expenditure
+// @Description List expenditure
+// @Tags budget
+// @Produce  json
+// @Param valueYear query int true "Value Year"
+// @Param valueType query string true "Value Type"
+// @Success 200 {array} types.Expenditure
+// @Router /budget [get]
+// @Security BearerAuth
 func (h *Handler) ListExpenditure(w http.ResponseWriter, r *http.Request) error {
 	value_year, err := helpers.GetIntByResponseQuery(r, "valueYear")
 	if err != nil {
@@ -104,6 +153,13 @@ func (h *Handler) ListExpenditure(w http.ResponseWriter, r *http.Request) error 
 	return helpers.WriteJSON(w, http.StatusOK, documents)
 }
 
+// @Summary Get budget options
+// @Description Get budget options
+// @Tags budget
+// @Produce  json
+// @Success 200 {object} types.BudgetOpts
+// @Router /budget/opts [get]
+// @Security BearerAuth
 func (h *Handler) GetBudgetOpts(w http.ResponseWriter, r *http.Request) error {
 	opts, err := h.store.GetBudgetOpts()
 	if err != nil {
@@ -112,6 +168,16 @@ func (h *Handler) GetBudgetOpts(w http.ResponseWriter, r *http.Request) error {
 	return helpers.WriteJSON(w, http.StatusOK, opts)
 }
 
+// @Summary List top N personnel by ministry ID
+// @Description List top N personnel by ministry ID
+// @Tags personnel
+// @Produce  json
+// @Param ministryID query int true "Ministry ID"
+// @Param topN query int true "Top N"
+// @Param startYear query int true "Start Year"
+// @Success 200 {array} types.Personnel
+// @Router /personnel [get]
+// @Security BearerAuth
 func (h *Handler) ListTopNPersonnelByMinistryID(w http.ResponseWriter, r *http.Request) error {
 	ministry_id, err := helpers.GetIntByResponseQuery(r, "ministryID")
 	if err != nil {
