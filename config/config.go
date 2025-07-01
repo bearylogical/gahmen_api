@@ -57,7 +57,12 @@ func (c *Config) Validate() error {
 func (c *Config) Parse() error {
 	err := godotenv.Load()
 	if err != nil {
-		return err
+		// If .env file is not found, log and continue, assuming env vars will be provided by Docker
+		if os.IsNotExist(err) {
+			log.Printf("No .env file found, relying on environment variables: %v", err)
+		} else {
+			return err
+		}
 	}
 
 	c.PostgresPort = os.Getenv("POSTGRES_PORT")
