@@ -15,6 +15,14 @@ RUN go mod download
 # Copy the source code
 COPY . .
 
+# Add execute permissions to the script
+RUN chmod +x ./scripts/post_swag.sh
+
+# Generate Swagger docs
+RUN go install github.com/swaggo/swag/cmd/swag@latest
+RUN /go/bin/swag init -g cmd/app/main.go
+RUN ./scripts/post_swag.sh
+
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /app/main ./cmd/app
 
