@@ -37,6 +37,9 @@ WORKDIR /app
 # Copy the built binary from the builder stage
 COPY --from=builder /app/main .
 
+# Copy the generated Swagger docs
+COPY --from=builder /app/docs ./docs
+
 # Expose port 8080 to the outside world
 EXPOSE 3080
 
