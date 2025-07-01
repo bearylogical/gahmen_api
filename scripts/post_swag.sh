@@ -2,20 +2,28 @@
 
 DOCS_FILE="./docs/docs.go"
 
-# Detect OS and set sed in-place flag
-if sed --version >/dev/null 2>&1; then
-    # GNU sed (Linux)
-    SED_INPLACE=(-i)
-else
+# Cross-platform sed in-place function
+sedi() {
+  # $1 = sed script, $2 = file
+  if sed --version >/dev/null 2>&1; then
+    # GNU sed
+    sed -i "$1" "$2"
+  else
     # BSD sed (macOS)
-    SED_INPLACE=(-i '')
-fi
+    sed -i '' "$1" "$2"
+  fi
+}
 
-# Add os import
-sed "${SED_INPLACE[@]}" 's#import "github.com/swaggo/swag"#import (\n\t"github.com/swaggo/swag"\n\t"os"\n)#g' "$DOCS_FILE"
+# Add os import (use printf to insert literal newlines)
+sedi "/import \"github.com\/swaggo\/swag\"/{
+    s#import \"github.com/swaggo/swag\"#import (\\
+    \t\"github.com/swaggo/swag\"\\
+    \t\"os\"\\
+    )#
+}" "$DOCS_FILE"
 
 # Set Host dynamically
-sed "${SED_INPLACE[@]}" 's#Host:             ""#Host:             os.Getenv("HOST")#g' "$DOCS_FILE"
+sedi "s#Host:             \"\"#Host:             os.Getenv(\"HOST\")#g" "$DOCS_FILE"
 
 # Replace ApiKeyAuth with BearerAuth in security definitions
-sed "${SED_INPLACE[@]}" 's#"ApiKeyAuth": \[\\\]#"BearerAuth": \[\\\]#g' "$DOCS_FILE"
+sedi "s#\"ApiKeyAuth\": \[\\\\\]#\"BearerAuth\": \[\\\\\]#g" "$DOCS_FILE"
