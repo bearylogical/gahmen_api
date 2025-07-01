@@ -19,7 +19,7 @@ func CreateStack(xs ...Middleware) Middleware {
 }
 
 func RateLimit(next http.Handler) http.Handler {
-	rateLimiter := NewRateLimiter(10, time.Minute) // 10 requests per minute
+	rateLimiter := NewRateLimiter(1000, time.Minute) // 1000 requests per minute
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rateLimiter.RateLimit(next.ServeHTTP).ServeHTTP(w, r)
 	})
