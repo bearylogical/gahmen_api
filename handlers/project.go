@@ -52,17 +52,31 @@ func (h *Handler) GetProjectExpenditureByID(w http.ResponseWriter, r *http.Reque
 // @Description Search project expenditure by query with pagination
 // @Tags projects
 // @Produce  json
-// @Param query query string true "Search query (supports AND, OR, NOT, and quoted phrases)"
+// @Param query query string false "Search query (supports AND, OR, NOT, and quoted phrases)"
+// @Param id query int false "Project ID for exact match"
 // @Param limit query int false "Number of results to return (default: 10)"
 // @Param offset query int false "Number of results to skip (default: 0)"
 // @Success 200 {array} types.ProjectExpenditure
 // @Router /api/v1/projects [post]
 // @Security BearerAuth
 func (h *Handler) GetProjectExpenditureByQuery(w http.ResponseWriter, r *http.Request) error {
-	query, err := helpers.GetStringByResponseQuery(r, "query")
-	if err != nil {
-		return err
+	id, idErr := helpers.GetIntByResponseQuery(r, "id")
+
+	if idErr == nil && id != -1 {
+		// If ID is provided and successfully parsed, search by ID
+		documents, err := h.store.GetProjectExpenditureByID(id)
+		if err != nil {
+			return err
+		}
+		return helpers.WriteJSON(w, http.StatusOK, documents)
 	}
+
+	// If ID was not provided or had an error, then we expect a 'query'
+	query, queryErr := helpers.GetStringByResponseQuery(r, "query")
+	if queryErr != nil {
+		return queryErr // Return error if 'query' is also missing
+	}
+
 	limit, err := helpers.GetIntByResponseQuery(r, "limit")
 	if err != nil {
 		limit = 10 // Default limit
@@ -83,22 +97,35 @@ func (h *Handler) GetProjectExpenditureByQuery(w http.ResponseWriter, r *http.Re
 	matches := re.FindAllString(query, -1)
 
 	var processedTerms []string
+	lastWasWord := false // Flag to track if the previous term processed was a regular word or quoted phrase
+
 	for _, term := range matches {
 		upperTerm := strings.ToUpper(term)
 		switch upperTerm {
 		case "AND":
 			processedTerms = append(processedTerms, "&")
+			lastWasWord = false // Operator, so reset flag
 		case "OR":
 			processedTerms = append(processedTerms, "|")
+			lastWasWord = false // Operator, so reset flag
 		case "NOT":
 			processedTerms = append(processedTerms, "!")
+			lastWasWord = false // Operator, so reset flag
 		default:
 			if strings.HasPrefix(term, "\"") && strings.HasSuffix(term, "\"") {
-				// It's a quoted phrase, remove quotes and keep as is for to_tsquery
+				// It's a quoted phrase
+				if lastWasWord {
+					processedTerms = append(processedTerms, "&") // Add AND if previous was a word/phrase
+				}
 				processedTerms = append(processedTerms, "'"+strings.Trim(term, "\"")+"'")
+				lastWasWord = true // Quoted phrase is also a "word" for implicit AND
 			} else {
-				// Regular word, apply partial match
+				// Regular word
+				if lastWasWord {
+					processedTerms = append(processedTerms, "&") // Add AND if previous was a word/phrase
+				}
 				processedTerms = append(processedTerms, term+":*")
+				lastWasWord = true
 			}
 		}
 	}
