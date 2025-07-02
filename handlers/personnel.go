@@ -13,8 +13,8 @@ import (
 // @Param ministryID query int true "Ministry ID"
 // @Param topN query int true "Top N"
 // @Param startYear query int true "Start Year"
-// @Success 200 {array} types.Personnel
-// @Router /personnel [get]
+// @Success 200 {array} types.Personnel "OK" "[{"personnel_type": "Admin", "category": "Support", "value_amount": 100, "value_year": 2023, "value_type": "Headcount"}]"
+// @Router /api/v1/personnel/{ministryID} [get]
 // @Security BearerAuth
 func (h *Handler) ListTopNPersonnelByMinistryID(w http.ResponseWriter, r *http.Request) error {
 	ministry_id, err := helpers.GetIntByResponseQuery(r, "ministryID")
