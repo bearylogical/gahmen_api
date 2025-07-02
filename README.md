@@ -27,26 +27,51 @@ Follow these steps to install the project:
 2. Navigate to the project directory: `cd gahmen_api`
 3. Download the dependencies: `go mod download`
 4. Install Swaggo: `go get -u github.com/swaggo/swag/cmd/swag`
-5. Set up the database: 
-   - Create a PostgreSQL database
-   - Create a `.env` file in the root directory and add the following environment variables:
-     ```
-     DB_HOST=localhost
-     DB_PORT=5432
-     DB_USER=user
-     DB_PASSWORD=password
-     DB_NAME=gahmen
-     ```
+
+## Environment Variables
+
+The application uses environment variables for configuration. You can set these directly in your shell or use a `.env` file (which you'll need to load manually, e.g., using `source .env` or a tool like `direnv`).
+
+**Database Configuration:**
+- `DB_HOST`: PostgreSQL host (e.g., `localhost`)
+- `DB_PORT`: PostgreSQL port (e.g., `5432`)
+- `DB_USER`: PostgreSQL username
+- `DB_PASSWORD`: PostgreSQL password
+- `DB_NAME`: PostgreSQL database name
+
+**Rate Limiting (Optional):**
+- `RATE_LIMIT_COUNT`: Maximum number of requests allowed within the `RATE_LIMIT_WINDOW` (e.g., `1000`).
+- `RATE_LIMIT_WINDOW`: Time duration for the rate limit window (e.g., `1m`, `30s`, `1h`). Uses Go's `time.ParseDuration` format.
+
+**Example .env file:**
+```
+DB_HOST=localhost
+DB_PORT=5432
+DB_USER=myuser
+DB_PASSWORD=mypassword
+DB_NAME=gahmen_db
+
+RATE_LIMIT_COUNT=500
+RATE_LIMIT_WINDOW=1m
+```
 
 ## Running the Project
 
-To run the project, use the following command:
+The project uses `Makefile` for common commands.
+
+**Available `make` commands:**
+
+- `make run`: Runs the API server.
+- `make swag`: Generates the API documentation using Swaggo.
+- `make test`: Runs all tests. (Assuming this command exists or will be added)
+
+To run the project, ensure your environment variables are set, then use:
 
 ```bash
-go run ./cmd/app/main.go
+make run
 ```
 
-To generate the API documentation, run the following command:
+To generate the API documentation:
 
 ```bash
 make swag
