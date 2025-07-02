@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"net/http"
+	"regexp"
 	"strings"
 
 	"gahmen-api/helpers"
@@ -62,9 +63,49 @@ func (h *Handler) GetProjectExpenditureByQuery(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		return err
 	}
-	// replace all spaces with ' & ' to allow for multiple search terms
-	query = strings.Replace(query, " ", " & ", -1)
-	documents, err := h.store.GetProjectExpenditureByQuery(query)
+	limit, err := helpers.GetIntByResponseQuery(r, "limit")
+	if err != nil {
+		limit = 10 // Default limit
+	}
+	offset, err := helpers.GetIntByResponseQuery(r, "offset")
+	if err != nil {
+		offset = 0 // Default offset
+	}
+
+	// Regex to match words, quoted phrases, and boolean operators
+	// Matches:
+	//   - Quoted strings: "..."
+	//   - NOT keyword: NOT
+	//   - OR keyword: OR
+	//   - AND keyword: AND
+	//   - Any other word characters
+	re := regexp.MustCompile(`"([^"]*)"|NOT|OR|AND|\S+`)
+	matches := re.FindAllString(query, -1)
+
+	var processedTerms []string
+	for _, term := range matches {
+		upperTerm := strings.ToUpper(term)
+		switch upperTerm {
+		case "AND":
+			processedTerms = append(processedTerms, "&")
+		case "OR":
+			processedTerms = append(processedTerms, "|")
+		case "NOT":
+			processedTerms = append(processedTerms, "!")
+		default:
+			if strings.HasPrefix(term, "\"") && strings.HasSuffix(term, "\"") {
+				// It's a quoted phrase, remove quotes and keep as is for to_tsquery
+				processedTerms = append(processedTerms, "'"+strings.Trim(term, "\"")+"'")
+			} else {
+				// Regular word, apply partial match
+				processedTerms = append(processedTerms, term+":*")
+			}
+		}
+	}
+
+	processedQuery := strings.Join(processedTerms, " ") // Join with space, to_tsquery handles operators
+
+	documents, err := h.store.GetProjectExpenditureByQuery(processedQuery, limit, offset)
 	if err != nil {
 		return err
 	}
