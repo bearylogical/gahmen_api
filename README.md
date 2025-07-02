@@ -32,6 +32,9 @@ Follow these steps to install the project:
 
 The application uses environment variables for configuration. You can set these directly in your shell or use a `.env` file (which you'll need to load manually, e.g., using `source .env` or a tool like `direnv`).
 
+**API Versioning:**
+- `API_VERSION`: The version of the API, used in Swagger documentation (e.g., `1.0.0`).
+
 **Database Configuration:**
 - `DB_HOST`: PostgreSQL host (e.g., `localhost`)
 - `DB_PORT`: PostgreSQL port (e.g., `5432`)
@@ -45,6 +48,7 @@ The application uses environment variables for configuration. You can set these 
 
 **Example .env file:**
 ```
+API_VERSION=1.0.0
 DB_HOST=localhost
 DB_PORT=5432
 DB_USER=myuser
