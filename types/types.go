@@ -108,10 +108,4 @@ func NewMinistry(name string) *Ministry {
 	}
 }
 
-func NewDocument(ministry string, documentName string, year int) *Document {
-	return &Document{
-		Ministry:     ministry,
-		DocumentName: documentName,
-		Year:         year,
-	}
-}
+
