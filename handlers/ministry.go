@@ -1,10 +1,12 @@
 package handlers
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"gahmen-api/helpers"
+	"gahmen-api/types"
 )
 
 // @Summary List all ministries
@@ -47,8 +49,26 @@ func (h *Handler) GetMinistryByID(w http.ResponseWriter, r *http.Request) error 
 	return helpers.WriteJSON(w, http.StatusOK, ministry)
 }
 
-func (h *Handler) UpdateMinistryByID(w http.ResponseWriter, r *http.Request) error {
-	return nil
+// @Summary Create a new ministry
+// @Description Create a new ministry
+// @Tags ministries
+// @Accept  json
+// @Produce  json
+// @Param ministry body types.Ministry true "Ministry object to be created"
+// @Success 200 {object} types.Ministry
+// @Router /ministries [post]
+// @Security BearerAuth
+func (h *Handler) CreateMinistry(w http.ResponseWriter, r *http.Request) error {
+	ministry := new(types.Ministry)
+	if err := json.NewDecoder(r.Body).Decode(ministry); err != nil {
+		return err
+	}
+
+	if err := h.store.CreateMinistry(ministry); err != nil {
+		return err
+	}
+
+	return helpers.WriteJSON(w, http.StatusOK, ministry)
 }
 
 func (h *Handler) DeleteMinistryByID(w http.ResponseWriter, r *http.Request) error {
