@@ -2,7 +2,6 @@ package storage
 
 import (
 	"fmt"
-
 	"gahmen-api/types"
 
 	"github.com/jmoiron/sqlx"
@@ -67,7 +66,7 @@ func (s *ExpenditureStore) GetProgrammeExpenditureByMinistryID(ministryID int) (
 	return programmes, nil
 }
 
-func (s *ExpenditureStore) GetProjectExpenditureByQuery(query string) ([]*types.ProjectExpenditure, error) {
+func (s *ExpenditureStore) GetProjectExpenditureByQuery(query string, limit, offset int) ([]*types.ProjectExpenditure, error) {
 	sqlStmt := `select
 				g."ProjectID",
 				g."ProjectTitle",
@@ -138,10 +137,10 @@ func (s *ExpenditureStore) GetProjectExpenditureByQuery(query string) ([]*types.
 						and a."ValueYear" = c."ValueYear"
 			) d on					d."ProjectID" = b4."ProjectID") g
 			inner join budgetdocuments b5 on
-				b5.id = g."DocumentID"`
+				b5.id = g."DocumentID" LIMIT $2 OFFSET $3`
 
 	projects := []*types.ProjectExpenditure{}
-	err := s.db.Select(&projects, sqlStmt, query)
+	err := s.db.Select(&projects, sqlStmt, query, limit, offset)
 	if err != nil {
 		return nil, fmt.Errorf("error getting project expenditure by query: %w", err)
 	}
@@ -393,5 +392,3 @@ func (s *ExpenditureStore) ListExpenditure(valueType string, valueYear int) ([]*
 	}
 	return expenditures, nil
 }
-
-
