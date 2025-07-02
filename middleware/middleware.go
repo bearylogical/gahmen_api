@@ -2,6 +2,8 @@ package middleware
 
 import (
 	"net/http"
+	"os"
+	"strconv"
 	"time"
 )
 
@@ -19,7 +21,22 @@ func CreateStack(xs ...Middleware) Middleware {
 }
 
 func RateLimit(next http.Handler) http.Handler {
-	rateLimiter := NewRateLimiter(1000, time.Minute) // 1000 requests per minute
+	limit := 1000         // Default limit
+	window := time.Minute // Default window
+
+	if limitStr := os.Getenv("RATE_LIMIT_COUNT"); limitStr != "" {
+		if parsedLimit, err := strconv.Atoi(limitStr); err == nil {
+			limit = parsedLimit
+		}
+	}
+
+	if windowStr := os.Getenv("RATE_LIMIT_WINDOW"); windowStr != "" {
+		if parsedWindow, err := time.ParseDuration(windowStr); err == nil {
+			window = parsedWindow
+		}
+	}
+
+	rateLimiter := NewRateLimiter(limit, window)
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		rateLimiter.RateLimit(next.ServeHTTP).ServeHTTP(w, r)
 	})
