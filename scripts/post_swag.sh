@@ -25,5 +25,7 @@ sedi "/import \"github.com\/swaggo\/swag\"/{
 # Set Host dynamically
 sedi "s#Host:             \"\"#Host:             os.Getenv(\"HOST\")#g" "$DOCS_FILE"
 
+sedi "s#Version:          \"1.0\"#Version:          os.Getenv(\"API_VERSION\")#g" "$DOCS_FILE"
+
 # Replace ApiKeyAuth with BearerAuth in security definitions
-sedi "s#\"ApiKeyAuth\": \[\\\\\]#\"BearerAuth\": \[\\\\\]#g" "$DOCS_FILE"
+sedi "s#\"ApiKeyAuth\": [\\]#\"BearerAuth\": [\\]#g" "$DOCS_FILE"

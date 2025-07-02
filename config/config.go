@@ -23,6 +23,8 @@ type Config struct {
 	SupabaseJWTSecret string
 	// Supabase JWKS URL for fetching public keys
 	SupabaseJWKSURL string
+	// API Version
+	APIVersion string
 }
 
 // create a new config struct with default values
@@ -72,6 +74,7 @@ func (c *Config) Parse() error {
 	c.PostgresPasword = os.Getenv("POSTGRES_PASSWORD")
 	c.SupabaseJWTSecret = os.Getenv("SUPABASE_JWT_SECRET")
 	c.SupabaseJWKSURL = os.Getenv("SUPABASE_JWKS_URL")
+	c.APIVersion = os.Getenv("API_VERSION")
 	log.Print("Gahmen API Configuration loaded")
 	return nil
 }
