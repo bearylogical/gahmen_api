@@ -14,7 +14,7 @@ type Storage interface {
 	ListProjectsByMinistryID(ministryID int) ([]*types.ProjectExpenditure, error)
 	// ExpenditureStore methods
 	GetProgrammeExpenditureByMinistryID(ministryID int) ([]*types.ProgrammeExpenditure, error)
-	GetProjectExpenditureByQuery(query string) ([]*types.ProjectExpenditure, error)
+	GetProjectExpenditureByQuery(query string, limit, offset int) ([]*types.ProjectExpenditure, error)
 	ListProjectExpenditureByMinistryID(ministryID int) ([]*types.ProjectExpenditure, error)
 	GetProjectExpenditureByID(projectID int) ([]*types.ProjectExpenditure, error)
 	ListExpenditureByMinistryID(ministryID int) ([]*types.Expenditures, error)
@@ -59,14 +59,14 @@ func NewPostgresStore(c *config.Config) (*PostgresStore, error) {
 	}
 
 	return &PostgresStore{
-		MinistryStore:   NewMinistryStore(db),
-		DocumentStore:   NewDocumentStore(db),
+		MinistryStore:    NewMinistryStore(db),
+		DocumentStore:    NewDocumentStore(db),
 		ExpenditureStore: NewExpenditureStore(db),
-		PersonnelStore:  NewPersonnelStore(db),
-		SGDILinkStore:   NewSGDILinkStore(db),
-		BudgetOptsStore: NewBudgetOptsStore(db),
-		ProjectStore:    NewProjectStore(db),
-		db:              db,
+		PersonnelStore:   NewPersonnelStore(db),
+		SGDILinkStore:    NewSGDILinkStore(db),
+		BudgetOptsStore:  NewBudgetOptsStore(db),
+		ProjectStore:     NewProjectStore(db),
+		db:               db,
 	}, nil
 }
 
@@ -78,7 +78,7 @@ func (s *PostgresStore) GetMinistryDataByID(ministryID int, n int, startYear int
 	if err != nil {
 		return nil, err
 	}
-	projects, err := s.ProjectStore.ListProjectsByMinistryID(ministryID)
+	projects, err := s.ExpenditureStore.ListProjectExpenditureByMinistryID(ministryID)
 	if err != nil {
 		return nil, err
 	}
