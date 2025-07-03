@@ -211,7 +211,7 @@ func (s *ExpenditureStore) ListProjectExpenditureByMinistryID(ministryID int) ([
 			inner join budgetdevelopmentprojectsexpenditure c on
 				a."ProjectID" = c."ProjectID"
 				and a."ValueYear" = c."ValueYear"
-		) d on d."ProjectID" = b4."ProjectID") g inner join budgetdocuments b5 on b5.id  = g."DocumentID"`
+		) d on d."ProjectID" = b4."ProjectID") g inner join budgetdocuments b5 on b5.id  = g."DocumentID" where g."Category" is not null`
 
 	projects := []*types.ProjectExpenditure{}
 	err := s.db.Select(&projects, sqlStmt, ministryID)
